@@ -1,0 +1,9 @@
+*.swp
+*.db
+*.map
+node_modules
+package-lock.json
+static/style.css
+static/bundle.css
+static/bundle.js
+
