@@ -6,7 +6,7 @@
 
 JSFILES = index.js App.svelte
 
-all: static/style.css static/bundle.js
+all: t5 static/style.css static/bundle.js
 
 dep:
 	sudo apt update
@@ -14,6 +14,7 @@ dep:
 	curl -sL https://deb.nodesource.com/setup_13.x | sudo bash -
 	sudo apt install nodejs
 	sudo npm --force install -g npx
+	go get github.com/mmcdole/gofeed
 
 webtools:
 	npm install --save-dev tailwindcss
@@ -29,11 +30,14 @@ static/style.css: twsrc.css
 	#npx postcss twsrc.o > static/style.css
 	npx tailwind build twsrc.css -o static/style.css 1>/dev/null
 
+t5: t5.go
+	go build -o t5 t5.go
+
 static/bundle.js: $(JSFILES)
 	npx rollup -c
 
 clean:
-	rm -rf static/*.js static/*.css static/*.map
+	rm -rf t5 static/*.js static/*.css static/*.map
 
 serve:
 	python -m SimpleHTTPServer
