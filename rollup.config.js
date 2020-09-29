@@ -2,7 +2,7 @@ import svelte from "rollup-plugin-svelte";
 import resolve from "@rollup/plugin-node-resolve";
 
 export default {
-    input: "index.js",
+    input: "drag_svelte.js",
     output: {
         file: "static/bundle.js",
         format: "iife",
