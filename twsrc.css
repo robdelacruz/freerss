@@ -6,3 +6,9 @@
 
 .w-widget {width: 20rem;}
 
+.widget {@apply bg-gray-800 text-gray-200 mb-2 py-2 px-4;}
+
+.linklist li {@apply mb-2 leading-tight;}
+
+
+
