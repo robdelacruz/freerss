@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -51,7 +53,7 @@ func (e *Entry) String() string {
 	}
 	return string(bs)
 }
-func parseFeedUrl(surl string, gfparser *gofeed.Parser) (*Feed, error) {
+func parseFeedUrl(gfparser *gofeed.Parser, surl string, maxitems int) (*Feed, error) {
 	gf, err := gfparser.ParseURL(surl)
 	if err != nil {
 		return nil, err
@@ -63,7 +65,11 @@ func parseFeedUrl(surl string, gfparser *gofeed.Parser) (*Feed, error) {
 	f.Desc = gf.Description
 	convdate(gf.PublishedParsed, &f.Pubtime, &f.Pubdate)
 
-	for _, it := range gf.Items {
+	if maxitems == 0 {
+		maxitems = len(gf.Items)
+	}
+
+	for i, it := range gf.Items {
 		e := Entry{}
 		e.Title = it.Title
 		e.Url = it.Link
@@ -72,6 +78,10 @@ func parseFeedUrl(surl string, gfparser *gofeed.Parser) (*Feed, error) {
 		convdate(it.PublishedParsed, &e.Pubtime, &e.Pubdate)
 
 		f.Entries = append(f.Entries, &e)
+
+		if i >= maxitems-1 {
+			break
+		}
 	}
 	return &f, nil
 }
@@ -98,7 +108,7 @@ func runtest(args []string) error {
 	surl := args[0]
 
 	gfparser := gofeed.NewParser()
-	f, err := parseFeedUrl(surl, gfparser)
+	f, err := parseFeedUrl(gfparser, surl, 0)
 	if err != nil {
 		return err
 	}
@@ -290,6 +300,17 @@ func atof(s string) float64 {
 	return f
 }
 
+func unescapeUrl(qurl string) string {
+	returl := "/"
+	if qurl != "" {
+		returl, _ = url.QueryUnescape(qurl)
+	}
+	return returl
+}
+func escape(s string) string {
+	return html.EscapeString(s)
+}
+
 func parseArgs(args []string) (map[string]string, []string) {
 	switches := map[string]string{}
 	parms := []string{}
@@ -336,7 +357,7 @@ func parseArgs(args []string) (map[string]string, []string) {
 
 func handleErr(w http.ResponseWriter, err error, sfunc string) {
 	log.Printf("%s: server error (%s)\n", sfunc, err)
-	http.Error(w, "Server error.", 500)
+	http.Error(w, fmt.Sprintf("%s", err), 500)
 }
 func handleDbErr(w http.ResponseWriter, err error, sfunc string) bool {
 	if err == sql.ErrNoRows {
@@ -360,15 +381,16 @@ func handleTxErr(tx *sql.Tx, err error) bool {
 
 func feedHandler(db *sql.DB, gfparser *gofeed.Parser) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		qurl := r.FormValue("url")
+		qurl := unescapeUrl(r.FormValue("url"))
 		if qurl == "" {
 			http.Error(w, "url required", 401)
 			return
 		}
+		qmaxitems := atoi(r.FormValue("maxitems"))
 
 		w.Header().Set("Content-Type", "application/json")
 		P := makeFprintf(w)
-		f, err := parseFeedUrl(qurl, gfparser)
+		f, err := parseFeedUrl(gfparser, qurl, qmaxitems)
 		if err != nil {
 			handleErr(w, err, "feedHandler")
 			return

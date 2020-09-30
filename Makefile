@@ -4,7 +4,7 @@
 # 'make' to build css and js into static/
 # 'make serve' to start dev webserver
 
-JSFILES = drag_svelte.js Drag.svelte
+JSFILES = index.js RSSView.svelte
 
 all: t5 static/style.css static/bundle.js
 
