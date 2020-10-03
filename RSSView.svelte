@@ -29,7 +29,18 @@ onMount(function() {
 
 <div data-icol="0" data-iwidget="0" draggable="true" class="widget w-full">
 {#if _feed}
-    <h1 class="text-sm font-bold border-b border-gray-500 pb-1 mb-2">{_feed.title}</h1>
+    <div class="flex flex-row justify-between">
+        <h1 class="text-sm font-bold border-b border-gray-500 pb-1 mb-2">{_feed.title}</h1>
+        <div class="relative">
+            <button class="h-4 w-4">
+                <img class="" src="cheveron-down.svg" alt="settings">
+            </button>
+            <div class="absolute top-auto right-0 py-1 bg-gray-200 text-gray-800 w-20 border border-gray-500 shadow-xs">
+                <a href="#" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem">Settings</a>
+                <a href="#" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem">Delete</a>
+            </div>
+        </div>
+    </div>
     <ul class="linklist">
     {#each _feed.entries as entry}
         <li>
