@@ -58,7 +58,6 @@ function onmenu(e) {
     ui.showmenu = !ui.showmenu;
 }
 function onwidgetclick(e) {
-    e.preventDefault();
     ui.showmenu = false;
 }
 function onsettings(e) {
@@ -106,12 +105,12 @@ function onformcancel(e) {
     <p>Loading...</p>
 {:else if ui.mode == "display"}
     {#if ui.err}
-        <p>Error: {ui.err}</p>
+        <p>Error ({ui.err})</p>
     {:else if ui.feed}
         <ul class="linklist">
         {#each ui.feed.entries as entry}
             <li>
-                <p><a href="{entry.url}">{entry.title}</a></p>
+                <a class="block" href="{entry.url}">{entry.title}</a>
             </li>
         {/each}
         </ul>

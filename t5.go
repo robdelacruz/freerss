@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -53,8 +54,8 @@ func (e *Entry) String() string {
 	}
 	return string(bs)
 }
-func parseFeedUrl(gfparser *gofeed.Parser, surl string, maxitems int) (*Feed, error) {
-	gf, err := gfparser.ParseURL(surl)
+func parseFeed(gfparser *gofeed.Parser, body string, maxitems int) (*Feed, error) {
+	gf, err := gfparser.ParseString(body)
 	if err != nil {
 		return nil, err
 	}
@@ -105,10 +106,20 @@ func runtest(args []string) error {
 		return errors.New("Please specify a feed url")
 	}
 
-	surl := args[0]
+	qurl := args[0]
+
+	res, err := http.Get(qurl)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	bs, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
 
 	gfparser := gofeed.NewParser()
-	f, err := parseFeedUrl(gfparser, surl, 0)
+	f, err := parseFeed(gfparser, string(bs), 0)
 	if err != nil {
 		return err
 	}
@@ -383,14 +394,26 @@ func feedHandler(db *sql.DB, gfparser *gofeed.Parser) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		qurl := unescapeUrl(r.FormValue("url"))
 		if qurl == "" {
-			http.Error(w, "url required", 401)
+			http.Error(w, "?url=<feedurl> required", 401)
 			return
 		}
 		qmaxitems := atoi(r.FormValue("maxitems"))
 
+		res, err := http.Get(qurl)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Not found: %s", qurl), 404)
+			return
+		}
+		defer res.Body.Close()
+		bs, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error reading feed (%s)", err), 404)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		P := makeFprintf(w)
-		f, err := parseFeedUrl(gfparser, qurl, qmaxitems)
+		f, err := parseFeed(gfparser, string(bs), qmaxitems)
 		if err != nil {
 			handleErr(w, err, "feedHandler")
 			return
