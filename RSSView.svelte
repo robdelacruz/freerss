@@ -75,6 +75,9 @@ function onformupdate(e) {
     reloadDisplay();
 }
 function onformcancel(e) {
+    // restore previous settings
+    settingsform.feedurl = feedurl;
+    settingsform.maxitems = maxitems;
     ui.mode = "display";
 }
 </script>
