@@ -123,7 +123,7 @@ function onformcancel(e) {
     <form class="">
         <div class="mb-2">
             <label class="block" for="feedurl">feed url</label>
-            <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-1 px-2" id="feedurl" name="feedurl" size="50" type="text" bind:value={settingsform.feedurl}>
+            <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-1 px-2 w-full" id="feedurl" name="feedurl" size="50" type="text" bind:value={settingsform.feedurl}>
         </div>
         <div class="mb-2">
             <label class="block" for="maxitems">max items</label>
