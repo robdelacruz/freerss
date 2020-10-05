@@ -1,9 +1,7 @@
-import RSSView from "./RSSView.svelte";
-let rssview = new RSSView({
+import Grid from "./Grid.svelte";
+let grid = new Grid({
     target: document.querySelector("#container"),
     props: {
-        feedurl: "http://rss.slashdot.org/Slashdot/slashdotMain",
-        maxitems: 15,
     },
 });
 

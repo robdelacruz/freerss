@@ -3,6 +3,7 @@ import {onMount} from "svelte";
 
 export let feedurl = "";
 export let maxitems = 10;
+export let wid = 0;
 let svcurl = "http://localhost:8000/api/feed/";
 
 let ui = {};
@@ -82,7 +83,7 @@ function onformcancel(e) {
 }
 </script>
 
-<div data-icol="0" data-iwidget="0" draggable="true" class="widget w-full" on:click={onwidgetclick}>
+<div data-wid={wid} draggable="true" class="widget w-full" on:click={onwidgetclick}>
     <div class="flex flex-row justify-between">
         <h1 class="text-sm font-bold border-b border-gray-500 pb-1 mb-2">
             {#if ui.feed}
