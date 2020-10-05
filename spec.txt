@@ -1,3 +1,7 @@
 https://github.com/mmcdole/gofeed
 https://github.com/gorilla/feeds
 
+feedsearch:
+https://feedsearch.dev/api/v1/search?result=true&url=twit.tv
+https://developer.feedly.com/v3/search/
+
