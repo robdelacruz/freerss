@@ -163,7 +163,7 @@ function ondragend(e) {
 {#each cols as col, icol}
     <div data-icol={icol} class="dropzone w-widget mx-2 pb-32">
     {#each cols[icol] as w, irow (w.wid)}
-        <RSSView wid={cols[icol][irow].wid} feedurl={cols[icol][irow].feedurl} maxitems={cols[icol][irow].maxitems} />
+        <RSSView bind:wid={cols[icol][irow].wid} bind:feedurl={cols[icol][irow].feedurl} bind:maxitems={cols[icol][irow].maxitems} />
     {/each}
     </div>
 {/each}
