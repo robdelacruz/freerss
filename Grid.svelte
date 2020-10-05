@@ -1,5 +1,49 @@
 <script>
+import {onMount} from "svelte";
 import RSSView from "./RSSView.svelte";
+
+let cols = [];
+
+onMount(function() {
+    cols = loadCols();
+    console.log("onMount");
+    console.log(cols);
+});
+
+function loadCols() {
+    // Restore from localStorage if present.
+    let jsoncols = localStorage.getItem("cols");
+    if (jsoncols != null) {
+        console.log("loadCols");
+        console.log(jsoncols);
+        return JSON.parse(jsoncols);
+    }
+
+    // Default widgets, if first time page was accessed.
+    let nitems = 5;
+    let initcols = [
+        [
+            newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", nitems),
+            newWidget("https://www.lewrockwell.com/feed/", nitems),
+            newWidget("https://feeds.feedburner.com/zerohedge/feed", nitems),
+        ],
+        [
+            newWidget("https://news.ycombinator.com/rss", nitems),
+            newWidget("http://feeds.twit.tv/twit.xml", nitems),
+        ],
+        [
+            newWidget("https://feeds.feedburner.com/breitbart", nitems),
+        ],
+    ];
+    return initcols;
+}
+function saveCols(cols) {
+    console.log("saveCols");
+    console.log(cols);
+    localStorage.setItem("cols", JSON.stringify(cols));
+    console.log("saveCols");
+    console.log(cols);
+}
 
 let _wid = 0;
 function newWidget(feedurl, maxitems) {
@@ -11,23 +55,6 @@ function newWidget(feedurl, maxitems) {
         maxitems: maxitems,
     };
 }
-
-let nitems = 5;
-
-let cols = [
-    [
-        newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", nitems),
-        newWidget("https://www.lewrockwell.com/feed/", nitems),
-        newWidget("https://feeds.feedburner.com/zerohedge/feed", nitems),
-    ],
-    [
-        newWidget("https://news.ycombinator.com/rss", nitems),
-        newWidget("http://feeds.twit.tv/twit.xml", nitems),
-    ],
-    [
-        newWidget("https://feeds.feedburner.com/breitbart", nitems),
-    ],
-];
 
 function getAttrWid(el) {
     return el.getAttribute("data-wid");
@@ -138,6 +165,8 @@ function ondrop(e) {
             console.log(cols[icol][i]);
         }
     }
+
+    saveCols(cols);
 }
 function ondragend(e) {
     if (!targetHasClass(e, "widget")) {
