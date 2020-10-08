@@ -4,7 +4,7 @@ import {onMount} from "svelte";
 export let feedurl = "";
 export let maxitems = 10;
 export let wid = 0;
-let svcurl = "http://localhost:8000/api/feed/";
+let container;
 
 let ui = {};
 ui.feed = null;
@@ -25,6 +25,7 @@ onMount(function() {
     reloadDisplay();
 });
 
+let svcurl = "http://localhost:8000/api/feed/";
 function reloadDisplay() {
     if (feedurl == "") {
         ui.mode = "settings";
@@ -86,6 +87,13 @@ function onformupdate(e) {
     feedurl = settingsform.feedurl;
     maxitems = settingsform.maxitems;
     reloadDisplay();
+
+    let updateEvent = new Event("rssview_update", {bubbles: true});
+    updateEvent.widget = {
+        feedurl: feedurl,
+        maxitem: maxitems,
+    };
+    container.dispatchEvent(updateEvent);
 }
 function onformcancel(e) {
     e.preventDefault();
@@ -97,7 +105,7 @@ function onformcancel(e) {
 }
 </script>
 
-<div data-wid={wid} draggable="true" class="widget w-full" on:click={onwidgetclick}>
+<div data-wid={wid} draggable="true" bind:this={container} class="widget w-full" on:click={onwidgetclick}>
     <div class="flex flex-row justify-between">
         <h1 class="text-sm font-bold border-b border-gray-500 pb-1 mb-2">
             {#if ui.feed}

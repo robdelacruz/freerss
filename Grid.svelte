@@ -8,6 +8,12 @@ onMount(function() {
     cols = loadCols();
     console.log("onMount");
     console.log(cols);
+
+    container.addEventListener("rssview_update", function(e) {
+        console.log("Grid received rssview_update");
+        console.log(e.widget);
+        saveCols(cols);
+    });
 });
 
 function loadCols() {
