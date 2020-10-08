@@ -157,15 +157,27 @@ function onformcancel(e) {
     <form class="">
         <div class="mb-2">
             <label class="block" for="feedurl">feed url</label>
-            <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-1 px-2 w-full" id="feedurl" name="feedurl" size="50" type="text" bind:value={settingsform.feedurl}>
+            <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-0 px-2 w-full" id="feedurl" name="feedurl" type="text" bind:value={settingsform.feedurl}>
         </div>
+<!--
         <div class="mb-2">
-            <label class="block" for="maxitems">max items</label>
-            <input class="block border border-gray-500 py-1 px-2 bg-gray-200 text-gray-800" id="maxitems" name="maxitems" size="3" maxlength="3" type="text" bind:value={settingsform.maxitems}>
+            <label class="block" for="feedname">Select Feed</label>
+            <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-1 px-2 w-full" id="feedname" name="feedname" type="text" list="feedname-list" bind:value={settingsform.feedname}>
+            <datalist id="feedname-list">
+                <option value="Lew Rockwell"></option>
+                <option value="Zero Hedge"></option>
+            </datalist>
         </div>
-        <div class="">
-            <button on:click={onformupdate} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-4">Update</button>
-            <button on:click={onformcancel} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800">Cancel</button>
+-->
+        <div class="mb-4">
+            <label class="block" for="maxitems">max items</label>
+            <input class="block border border-gray-500 py-0 px-2 bg-gray-200 text-gray-800 w-8" id="maxitems" name="maxitems" maxlength="2" type="text" bind:value={settingsform.maxitems}>
+        </div>
+        <div class="flex flex-row justify-center">
+            <div>
+                <button on:click={onformupdate} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Update</button>
+                <button on:click={onformcancel} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800">Cancel</button>
+            </div>
         </div>
     </form>
 {:else if ui.mode == "delete"}

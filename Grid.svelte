@@ -53,16 +53,14 @@ function loadCols() {
     let nitems = 5;
     let initcols = [
         [
-            newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", nitems),
-            newWidget("https://www.lewrockwell.com/feed/", nitems),
-            newWidget("https://feeds.feedburner.com/zerohedge/feed", nitems),
+            newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", 8),
+            newWidget("https://news.ycombinator.com/rss", 10),
         ],
         [
-            newWidget("https://news.ycombinator.com/rss", nitems),
-            newWidget("http://feeds.twit.tv/twit.xml", nitems),
+            newWidget("https://www.lewrockwell.com/feed/", 8),
+            newWidget("https://feeds.feedburner.com/zerohedge/feed", 8),
         ],
         [
-            newWidget("https://feeds.feedburner.com/breitbart", nitems),
             newWidget("", nitems),
         ],
     ];
