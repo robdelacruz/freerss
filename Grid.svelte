@@ -33,6 +33,7 @@ function loadCols() {
         ],
         [
             newWidget("https://feeds.feedburner.com/breitbart", nitems),
+            newWidget("", nitems),
         ],
     ];
     return initcols;

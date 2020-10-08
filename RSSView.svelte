@@ -10,7 +10,12 @@ let ui = {};
 ui.feed = null;
 ui.err = null;
 ui.showmenu = false;
-ui.mode = "loading";
+
+if (feedurl != "") {
+    ui.mode = "loading";
+} else {
+    ui.mode = "settings";
+}
 
 let settingsform = {};
 settingsform.feedurl = feedurl;
@@ -21,7 +26,10 @@ onMount(function() {
 });
 
 function reloadDisplay() {
-    ui.mode = "loading";
+    if (feedurl == "") {
+        ui.mode = "settings";
+        return;
+    }
 
     let sreq = `${svcurl}?url=${encodeURIComponent(feedurl)}&maxitems=${maxitems}`
     fetch(sreq, {method: "GET"})
@@ -70,12 +78,18 @@ function ondelete(e) {
 
 function onformupdate(e) {
     e.preventDefault();
+    if (settingsform.feedurl == "") {
+        ui.mode = "display";
+        return;
+    }
 
     feedurl = settingsform.feedurl;
     maxitems = settingsform.maxitems;
     reloadDisplay();
 }
 function onformcancel(e) {
+    e.preventDefault();
+
     // restore previous settings
     settingsform.feedurl = feedurl;
     settingsform.maxitems = maxitems;
@@ -114,7 +128,7 @@ function onformcancel(e) {
         <ul class="linklist">
         {#each ui.feed.entries as entry}
             <li>
-                <a class="block" href="{entry.url}">{entry.title}</a>
+                <a href="{entry.url}" target="_blank" class="block">{entry.title}</a>
             </li>
         {/each}
         </ul>
