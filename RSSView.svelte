@@ -1,5 +1,6 @@
 <script>
-import {onMount} from "svelte";
+import {onMount, createEventDispatcher} from "svelte";
+let dispatch = createEventDispatcher();
 
 export let feedurl = "";
 export let maxitems = 10;
@@ -32,7 +33,11 @@ function reloadDisplay() {
         return;
     }
 
-    let sreq = `${svcurl}?url=${encodeURIComponent(feedurl)}&maxitems=${maxitems}`
+    let qmaxitems = maxitems;
+    if (qmaxitems == 0) {
+        qmaxitems = 5;
+    }
+    let sreq = `${svcurl}?url=${encodeURIComponent(feedurl)}&maxitems=${qmaxitems}`
     fetch(sreq, {method: "GET"})
     .then(res => {
         if (!res.ok) {
@@ -75,6 +80,13 @@ function onsettings(e) {
 }
 function ondelete(e) {
     ui.mode = "delete";
+
+    let widget = {
+        wid: wid,
+        feedurl: feedurl,
+        maxitem: maxitems,
+    };
+    dispatch("deleted", widget);
 }
 
 function onformupdate(e) {
@@ -88,12 +100,12 @@ function onformupdate(e) {
     maxitems = settingsform.maxitems;
     reloadDisplay();
 
-    let updateEvent = new Event("rssview_update", {bubbles: true});
-    updateEvent.widget = {
+    let widget = {
+        wid: wid,
         feedurl: feedurl,
         maxitem: maxitems,
     };
-    container.dispatchEvent(updateEvent);
+    dispatch("updated", widget);
 }
 function onformcancel(e) {
     e.preventDefault();
@@ -105,7 +117,7 @@ function onformcancel(e) {
 }
 </script>
 
-<div data-wid={wid} draggable="true" bind:this={container} class="widget w-full" on:click={onwidgetclick}>
+<div data-wid={wid} draggable="true" class="widget w-full" on:click={onwidgetclick}>
     <div class="flex flex-row justify-between">
         <h1 class="text-sm font-bold border-b border-gray-500 pb-1 mb-2">
             {#if ui.feed}

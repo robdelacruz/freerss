@@ -3,11 +3,23 @@ import {onMount} from "svelte";
 import RSSView from "./RSSView.svelte";
 
 let cols = [];
+let _wid = 0;
+
+function getHighestWid(cols) {
+    let highestwid = 0;
+    for (let icol=0; icol < cols.length; icol++) {
+        for (let irow=0; irow < cols[icol].length; irow++) {
+            if (cols[icol][irow].wid > highestwid) {
+                highestwid = cols[icol][irow].wid;
+            }
+        }
+    }
+    return highestwid;
+}
 
 onMount(function() {
     cols = loadCols();
-    console.log("onMount");
-    console.log(cols);
+    _wid = getHighestWid(cols);
 
     container.addEventListener("rssview_update", function(e) {
         console.log("Grid received rssview_update");
@@ -15,6 +27,18 @@ onMount(function() {
         saveCols(cols);
     });
 });
+
+function rssview_updated(e) {
+    saveCols(cols);
+}
+
+function rssview_deleted(e) {
+    console.log("rssview_deleted");
+    console.log(e);
+    removeWidget(cols, e.detail.wid);
+    cols = cols;
+    saveCols(cols);
+}
 
 function loadCols() {
     // Restore from localStorage if present.
@@ -52,7 +76,6 @@ function saveCols(cols) {
     console.log(cols);
 }
 
-let _wid = 0;
 function newWidget(feedurl, maxitems) {
     _wid++;
 
@@ -153,24 +176,11 @@ function ondrop(e) {
         }
         cols[l.col].splice(l.row, 0, widget);
         cols[l.col] = cols[l.col];
-        console.log("ondrop -> widget");
-        console.log(`l.col: ${l.col}`);
-        console.log(`length: ${cols[l.col].length}`);
-        for (let i=0; i < cols[l.col].length; i++) {
-            console.log(cols[l.col][i]);
-        }
     } else {
         // "dropzone" column
         let icol = target.getAttribute("data-icol");
         cols[icol].push(widget);
         cols[icol] = cols[icol];
-
-        console.log("ondrop -> dropzone");
-        console.log(`icol: ${icol}`);
-        console.log(`length: ${cols[icol].length}`);
-        for (let i=0; i < cols[icol].length; i++) {
-            console.log(cols[icol][i]);
-        }
     }
 
     saveCols(cols);
@@ -190,16 +200,29 @@ function ondragend(e) {
 //        cols[l.col] = cols[l.col];
 //    }
 }
+
+// Add empty widget to the upper leftmost corner.
+function onaddwidget(e) {
+    if (cols.length == 0) {
+        cols.push([]);
+    }
+    cols[0].splice(0, 0, newWidget("", 0));
+    cols[0] = cols[0];
+}
+
 </script>
 
 <style>
 </style>
 
+<div class="flex flex-row justify-end mb-2">
+    <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-1" on:click={onaddwidget}>Add Widget</a>
+</div>
 <div class="flex flex-row justify-center">
 {#each cols as col, icol}
     <div data-icol={icol} class="dropzone w-widget mx-2 pb-32">
     {#each cols[icol] as w, irow (w.wid)}
-        <RSSView bind:wid={cols[icol][irow].wid} bind:feedurl={cols[icol][irow].feedurl} bind:maxitems={cols[icol][irow].maxitems} />
+    <RSSView bind:wid={cols[icol][irow].wid} bind:feedurl={cols[icol][irow].feedurl} bind:maxitems={cols[icol][irow].maxitems} on:updated={rssview_updated} on:deleted={rssview_deleted} />
     {/each}
     </div>
 {/each}
