@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
+	xhtml "golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 	"html"
 	"io"
 	"io/ioutil"
@@ -12,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -101,30 +105,25 @@ func main() {
 	}
 }
 
-func runtest(args []string) error {
+func rundiscoverrss(args []string) error {
 	if len(args) == 0 {
 		return errors.New("Please specify a feed url")
 	}
-
 	qurl := args[0]
-
-	res, err := http.Get(qurl)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	bs, err := ioutil.ReadAll(res.Body)
+	feeds, err := discoverfeeds(qurl)
 	if err != nil {
 		return err
 	}
 
-	gfparser := gofeed.NewParser()
-	f, err := parseFeed(gfparser, string(bs), 0)
-	if err != nil {
-		return err
+	if len(feeds) == 0 {
+		fmt.Println("No feeds found.")
+		return nil
 	}
 
-	fmt.Println(f)
+	fmt.Println("Found feeds:")
+	for _, feed := range feeds {
+		fmt.Println(feed)
+	}
 	return nil
 }
 
@@ -176,6 +175,7 @@ func run(args []string) error {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
 	http.HandleFunc("/api/feed/", feedHandler(nil, gfparser))
+	http.HandleFunc("/api/discoverfeed/", discoverfeedHandler(nil, gfparser))
 
 	port := "8000"
 	fmt.Printf("Listening on %s...\n", port)
@@ -420,4 +420,110 @@ func feedHandler(db *sql.DB, gfparser *gofeed.Parser) http.HandlerFunc {
 		}
 		P("%s\n", f)
 	}
+}
+
+func discoverfeedHandler(db *sql.DB, gfparser *gofeed.Parser) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		qurl := unescapeUrl(r.FormValue("url"))
+		if qurl == "" {
+			http.Error(w, "?url=<feedurl> required", 401)
+			return
+		}
+
+		feeds, err := discoverfeeds(qurl)
+		if err != nil {
+			handleErr(w, err, "discoverfeedHandler")
+			return
+		}
+		bs, _ := json.MarshalIndent(feeds, "", "\t")
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		P("%s\n", string(bs))
+	}
+}
+func discoverfeeds(qurl string) ([]string, error) {
+	res, err := http.Get(qurl)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	bs, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var feeds []string
+
+	// Check if url is already an rss feed.
+	gfparser := gofeed.NewParser()
+	if isValidFeed(gfparser, bs) {
+		feeds = append(feeds, qurl)
+	}
+	ubase, _ := url.Parse(qurl)
+
+	surls := getFeedLinks(bs)
+	for _, surl := range surls {
+		surl = completeFeedUrl(ubase, surl)
+		feeds = append(feeds, surl)
+	}
+
+	return feeds, nil
+}
+func getAttr(tok xhtml.Token, k string) string {
+	for _, attr := range tok.Attr {
+		if attr.Key == k {
+			return attr.Val
+		}
+	}
+	return ""
+}
+func isValidFeed(gfparser *gofeed.Parser, bs []byte) bool {
+	_, err := parseFeed(gfparser, string(bs), 0)
+	if err != nil {
+		return false
+	}
+	return true
+}
+func getFeedLinks(bs []byte) []string {
+	var feeds []string
+
+	z := xhtml.NewTokenizer(bytes.NewReader(bs))
+	for {
+		tt := z.Next()
+		if tt == xhtml.ErrorToken {
+			break
+		}
+
+		tok := z.Token()
+		if tok.DataAtom != atom.Link {
+			continue
+		}
+		stype := getAttr(tok, "type")
+		if stype != "application/rss+xml" && stype != "application/atom+xml" {
+			continue
+		}
+		href := getAttr(tok, "href")
+		if href == "" {
+			continue
+		}
+		feeds = append(feeds, href)
+	}
+
+	return feeds
+}
+func completeFeedUrl(ubase *url.URL, sfeedurl string) string {
+	ufeed, _ := url.Parse(sfeedurl)
+	if ufeed.Scheme == "" {
+		ufeed.Scheme = ubase.Scheme
+	}
+	if ufeed.Host == "" {
+		ufeed.Host = ubase.Host
+	}
+	// if feed is relative to baseurl
+	if !strings.HasPrefix(ufeed.Path, "/") {
+		ufeed.Path = path.Join(ubase.Path, ufeed.Path)
+	}
+	return ufeed.String()
 }
