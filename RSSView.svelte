@@ -80,6 +80,9 @@ function onwidgetclick(e) {
 }
 function onsettings(e) {
     ui.mode = "settings";
+    settingsform.status = "";
+    settingsform.feedurl = feedurl;
+    settingsform.maxitems = maxitems;
 }
 function ondelete(e) {
     ui.mode = "delete";
@@ -101,28 +104,29 @@ async function onformupdate(e) {
         return;
     }
 
-    let sreq = `${svcurl}/discoverfeed?url=${encodeURIComponent(settingsform.feedurl)}`
-    let feeds = [];
-    try {
-        settingsform.mode = "loading";
-        settingsform.status = "Finding feeds...";
-        let res = await fetch(sreq, {method: "GET"});
-        feeds = await res.json();
-        settingsform.mode = "";
-        settingsform.status = "";
+    if (settingsform.feedurl != feedurl) {
+        try {
+            settingsform.mode = "loading";
+            settingsform.status = "Finding feeds...";
+            let feeds = await discoverfeeds(settingsform.feedurl);
+            settingsform.mode = "";
+            settingsform.status = "";
 
-        if (feeds.length == 0) {
-            settingsform.status = "No feed found.";
+            if (feeds.length == 0) {
+                settingsform.status = "No feed found.";
+                return;
+            }
+
+            feedurl = feeds[0];
+            settingsform.feedurl = feedurl;
+        } catch(err) {
+            console.log(err);
+            settingsform.mode = "";
+            settingsform.status = "server error: try again later";
             return;
         }
-    } catch(err) {
-        console.log(err);
-        settingsform.status = "server error: try again later";
-        return;
     }
 
-    feedurl = feeds[0];
-    settingsform.feedurl = feedurl;
     maxitems = settingsform.maxitems;
     reloadDisplay();
 
@@ -140,6 +144,17 @@ function onformcancel(e) {
     settingsform.feedurl = feedurl;
     settingsform.maxitems = maxitems;
     ui.mode = "display";
+}
+
+async function discoverfeeds(qurl) {
+    let sreq = `${svcurl}/discoverfeed?url=${encodeURIComponent(qurl)}`
+    let res = await fetch(sreq, {method: "GET"});
+    if (!res.ok) {
+        let err = await res.text();
+        return Promise.reject(err);
+    }
+    let feeds = await res.json();
+    return feeds;
 }
 </script>
 
