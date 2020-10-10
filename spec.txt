@@ -5,3 +5,5 @@ feedsearch:
 https://feedsearch.dev/api/v1/search?result=true&url=twit.tv
 https://developer.feedly.com/v3/search/
 
+https://stackoverflow.com/questions/45267125/how-to-generate-unique-random-alphanumeric-tokens-in-golang
+
