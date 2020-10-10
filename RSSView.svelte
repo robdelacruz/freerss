@@ -2,6 +2,8 @@
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
 
+let svcurl = "http://localhost:8000/api";
+
 export let feedurl = "";
 export let maxitems = 10;
 export let wid = 0;
@@ -19,6 +21,8 @@ if (feedurl != "") {
 }
 
 let settingsform = {};
+settingsform.mode = "";
+settingsform.status = "";
 settingsform.feedurl = feedurl;
 settingsform.maxitems = maxitems;
 
@@ -26,7 +30,6 @@ onMount(function() {
     reloadDisplay();
 });
 
-let svcurl = "http://localhost:8000/api/feed/";
 function reloadDisplay() {
     if (feedurl == "") {
         ui.mode = "settings";
@@ -37,7 +40,7 @@ function reloadDisplay() {
     if (qmaxitems == 0) {
         qmaxitems = 5;
     }
-    let sreq = `${svcurl}?url=${encodeURIComponent(feedurl)}&maxitems=${qmaxitems}`
+    let sreq = `${svcurl}/feed?url=${encodeURIComponent(feedurl)}&maxitems=${qmaxitems}`
     fetch(sreq, {method: "GET"})
     .then(res => {
         if (!res.ok) {
@@ -89,14 +92,37 @@ function ondelete(e) {
     dispatch("deleted", widget);
 }
 
-function onformupdate(e) {
+async function onformupdate(e) {
     e.preventDefault();
+    settingsform.status = "";
+
     if (settingsform.feedurl == "") {
         ui.mode = "display";
         return;
     }
 
-    feedurl = settingsform.feedurl;
+    let sreq = `${svcurl}/discoverfeed?url=${encodeURIComponent(settingsform.feedurl)}`
+    let feeds = [];
+    try {
+        settingsform.mode = "loading";
+        settingsform.status = "Finding feeds...";
+        let res = await fetch(sreq, {method: "GET"});
+        feeds = await res.json();
+        settingsform.mode = "";
+        settingsform.status = "";
+
+        if (feeds.length == 0) {
+            settingsform.status = "No feed found.";
+            return;
+        }
+    } catch(err) {
+        console.log(err);
+        settingsform.status = "server error: try again later";
+        return;
+    }
+
+    feedurl = feeds[0];
+    settingsform.feedurl = feedurl;
     maxitems = settingsform.maxitems;
     reloadDisplay();
 
@@ -159,23 +185,22 @@ function onformcancel(e) {
             <label class="block" for="feedurl">feed url</label>
             <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-0 px-2 w-full" id="feedurl" name="feedurl" type="text" bind:value={settingsform.feedurl}>
         </div>
-<!--
         <div class="mb-2">
-            <label class="block" for="feedname">Select Feed</label>
-            <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-1 px-2 w-full" id="feedname" name="feedname" type="text" list="feedname-list" bind:value={settingsform.feedname}>
-            <datalist id="feedname-list">
-                <option value="Lew Rockwell"></option>
-                <option value="Zero Hedge"></option>
-            </datalist>
-        </div>
--->
-        <div class="mb-4">
             <label class="block" for="maxitems">max items</label>
             <input class="block border border-gray-500 py-0 px-2 bg-gray-200 text-gray-800 w-8" id="maxitems" name="maxitems" maxlength="2" type="text" bind:value={settingsform.maxitems}>
         </div>
+    {#if settingsform.status != ""}
+        <div class="mb-2">
+            <p class="font-bold">{settingsform.status}</p>
+        </div>
+    {/if}
         <div class="flex flex-row justify-center">
             <div>
+    {#if settingsform.mode == "loading"}
+                <button disabled on:click={onformupdate} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Update</button>
+    {:else}
                 <button on:click={onformupdate} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Update</button>
+    {/if}
                 <button on:click={onformcancel} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800">Cancel</button>
             </div>
         </div>

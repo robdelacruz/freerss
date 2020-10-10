@@ -22,8 +22,6 @@ onMount(function() {
     _wid = getHighestWid(cols);
 
     container.addEventListener("rssview_update", function(e) {
-        console.log("Grid received rssview_update");
-        console.log(e.widget);
         saveCols(cols);
     });
 });
@@ -33,8 +31,6 @@ function rssview_updated(e) {
 }
 
 function rssview_deleted(e) {
-    console.log("rssview_deleted");
-    console.log(e);
     removeWidget(cols, e.detail.wid);
     cols = cols;
     saveCols(cols);
@@ -44,8 +40,6 @@ function loadCols() {
     // Restore from localStorage if present.
     let jsoncols = localStorage.getItem("cols");
     if (jsoncols != null) {
-        console.log("loadCols");
-        console.log(jsoncols);
         return JSON.parse(jsoncols);
     }
 
@@ -67,11 +61,7 @@ function loadCols() {
     return initcols;
 }
 function saveCols(cols) {
-    console.log("saveCols");
-    console.log(cols);
     localStorage.setItem("cols", JSON.stringify(cols));
-    console.log("saveCols");
-    console.log(cols);
 }
 
 function newWidget(feedurl, maxitems) {

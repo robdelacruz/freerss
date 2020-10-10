@@ -435,7 +435,11 @@ func discoverfeedHandler(db *sql.DB, gfparser *gofeed.Parser) http.HandlerFunc {
 			handleErr(w, err, "discoverfeedHandler")
 			return
 		}
-		bs, _ := json.MarshalIndent(feeds, "", "\t")
+		bs, err := json.MarshalIndent(feeds, "", "\t")
+		if err != nil {
+			handleErr(w, err, "discoverfeedHandler")
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		P := makeFprintf(w)
@@ -454,7 +458,7 @@ func discoverfeeds(qurl string) ([]string, error) {
 		return nil, err
 	}
 
-	var feeds []string
+	feeds := []string{}
 
 	// Check if url is already an rss feed.
 	gfparser := gofeed.NewParser()
