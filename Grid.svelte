@@ -102,11 +102,11 @@ function removeWidget(cols, wid) {
             if (w.wid == wid) {
                 cols[icol].splice(irow, 1);
                 cols[icol] = cols[icol];
-                return cols;
+                return;
             }
         }
     }
-    return cols;
+    return;
 }
 
 function targetHasClass(e, ...cc) {
@@ -155,9 +155,15 @@ function ondrop(e) {
     e.preventDefault();
     let jsonwidget = e.dataTransfer.getData("text/plain");
     let widget = JSON.parse(jsonwidget);
-    removeWidget(cols, widget.wid);
 
     if (target.classList.contains("widget")) {
+        // Don't do anything if widget was dragged to itself.
+        if (getAttrWid(target) == widget.wid) {
+            return;
+        }
+
+        removeWidget(cols, widget.wid);
+
         let l = findWidgetLoc(cols, target);
         if (l == null) {
             return;
@@ -166,6 +172,8 @@ function ondrop(e) {
         cols[l.col] = cols[l.col];
     } else {
         // "dropzone" column
+        removeWidget(cols, widget.wid);
+
         let icol = target.getAttribute("data-icol");
         cols[icol].push(widget);
         cols[icol] = cols[icol];
