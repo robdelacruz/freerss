@@ -202,7 +202,7 @@ async function discoverfeeds(qurl) {
         </div>
         <div class="mb-2">
             <label class="block" for="maxitems">max items</label>
-            <input class="block border border-gray-500 py-0 px-2 bg-gray-200 text-gray-800 w-8" id="maxitems" name="maxitems" maxlength="2" type="text" bind:value={settingsform.maxitems}>
+            <input class="block border border-gray-500 py-0 px-2 bg-gray-200 text-gray-800 w-10" id="maxitems" name="maxitems" maxlength="2" type="text" bind:value={settingsform.maxitems}>
         </div>
     {#if settingsform.status != ""}
         <div class="mb-2">
