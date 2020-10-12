@@ -211,8 +211,15 @@ function onaddwidget(e) {
 <style>
 </style>
 
-<div class="flex flex-row justify-end mb-2">
-    <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-1" on:click={onaddwidget}>Add Widget</a>
+<div class="flex flex-row justify-between border-b border-gray-500 text-gray-200 pb-1 mb-2">
+    <div>
+        <h1 class="inline self-end text-sm mr-2">FreeRSS</h1>
+        <a href="about.html" class="self-end mr-2">About</a>
+        <a href="source.html" class="self-end mr-2">Source</a>
+    </div>
+    <div>
+        <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-1" on:click={onaddwidget}>Add Widget</a>
+    </div>
 </div>
 <div class="flex flex-row justify-center">
 {#each cols as col, icol}
