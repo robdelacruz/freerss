@@ -22,6 +22,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mmcdole/gofeed"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type PrintFunc func(format string, a ...interface{}) (n int, err error)
@@ -105,6 +106,68 @@ func main() {
 	}
 }
 
+func runtesthash(args []string) error {
+	if len(args) == 0 {
+		return errors.New("Please specify a username")
+	}
+	if len(args) == 1 {
+		username := args[0]
+		shash := genHash(username)
+		fmt.Printf("%s\n", shash)
+		return nil
+	}
+
+	username := args[0]
+	shash := args[1]
+	if validateHash(shash, username) {
+		fmt.Printf("validate ok\n")
+	} else {
+		fmt.Printf("not validated\n")
+	}
+	return nil
+}
+func runtestsignup(args []string) error {
+	sw, parms := parseArgs(args)
+	// [-i new_file]  Create and initialize db file
+	if sw["i"] != "" {
+		dbfile := sw["i"]
+		if fileExists(dbfile) {
+			return fmt.Errorf("File '%s' already exists. Can't initialize it.\n", dbfile)
+		}
+		createTables(dbfile)
+		return nil
+	}
+
+	// Need to specify a db file as first parameter.
+	if len(parms) == 0 {
+		return errors.New("Specify a db file")
+	}
+
+	// Exit if db file doesn't exist.
+	dbfile := parms[0]
+	if !fileExists(dbfile) {
+		return fmt.Errorf(`Database file '%s' doesn't exist. Create one using:
+	freerss -i <notes.db>
+   `, dbfile)
+	}
+
+	db, err := sql.Open("sqlite3", dbfile)
+	if err != nil {
+		return fmt.Errorf("Error opening '%s' (%s)\n", dbfile, err)
+	}
+
+	if len(parms) < 3 {
+		return fmt.Errorf("Specify a username and password")
+	}
+	username := parms[1]
+	pwd := parms[2]
+	err = signup(db, username, pwd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func rundiscoverrss(args []string) error {
 	if len(args) == 0 {
 		return errors.New("Please specify a feed url")
@@ -128,7 +191,7 @@ func rundiscoverrss(args []string) error {
 }
 
 func run(args []string) error {
-	sw, _ := parseArgs(args)
+	sw, parms := parseArgs(args)
 
 	// [-i new_file]  Create and initialize db file
 	if sw["i"] != "" {
@@ -140,34 +203,32 @@ func run(args []string) error {
 		return nil
 	}
 
-	/*
-	   	// Need to specify a db file as first parameter.
-	   	if len(parms) == 0 {
-	   		s := `Usage:
+	// Need to specify a db file as first parameter.
+	if len(parms) == 0 {
+		s := `Usage:
 
-	   Start webservice using database file:
-	   	t5 <db file>
+   Start webservice using database file:
+	freerss <db file>
 
-	   Initialize new database file:
-	   	t5 -i <new db file>
-	   `
-	   		fmt.Printf(s)
-	   		return nil
-	   	}
+   Initialize new database file:
+	freerss -i <new db file>
+   `
+		fmt.Printf(s)
+		return nil
+	}
 
-	   	// Exit if db file doesn't exist.
-	   	dbfile := parms[0]
-	   	if !fileExists(dbfile) {
-	   		return fmt.Errorf(`Database file '%s' doesn't exist. Create one using:
-	   	wb -i <notes.db>
-	   `, dbfile)
-	   	}
+	// Exit if db file doesn't exist.
+	dbfile := parms[0]
+	if !fileExists(dbfile) {
+		return fmt.Errorf(`Database file '%s' doesn't exist. Create one using:
+	freerss -i <instance.db>
+   `, dbfile)
+	}
 
-	   	db, err := sql.Open("sqlite3", dbfile)
-	   	if err != nil {
-	   		return fmt.Errorf("Error opening '%s' (%s)\n", dbfile, err)
-	   	}
-	*/
+	db, err := sql.Open("sqlite3", dbfile)
+	if err != nil {
+		return fmt.Errorf("Error opening '%s' (%s)\n", dbfile, err)
+	}
 
 	gfparser := gofeed.NewParser()
 
@@ -176,10 +237,12 @@ func run(args []string) error {
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
 	http.HandleFunc("/api/feed/", feedHandler(nil, gfparser))
 	http.HandleFunc("/api/discoverfeed/", discoverfeedHandler(nil, gfparser))
+	http.HandleFunc("/api/signup/", signupHandler(db))
+	http.HandleFunc("/api/login/", loginHandler(db))
 
 	port := "8000"
 	fmt.Printf("Listening on %s...\n", port)
-	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	return err
 }
 
@@ -197,8 +260,8 @@ func createTables(newfile string) {
 	}
 
 	ss := []string{
-		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT, active INTEGER NOT NULL, email TEXT);",
-		"INSERT INTO user (user_id, username, password, active, email) VALUES (1, 'admin', '', 1, '');",
+		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
+		"INSERT INTO user (user_id, username, password) VALUES (1, 'admin', '');",
 	}
 
 	tx, err := db.Begin()
@@ -390,6 +453,44 @@ func handleTxErr(tx *sql.Tx, err error) bool {
 	return false
 }
 
+func genHash(sinput string) string {
+	bsHash, err := bcrypt.GenerateFromPassword([]byte(sinput), bcrypt.DefaultCost)
+	if err != nil {
+		return ""
+	}
+	return string(bsHash)
+}
+func validateHash(shash, sinput string) bool {
+	if shash == "" && sinput == "" {
+		return true
+	}
+	err := bcrypt.CompareHashAndPassword([]byte(shash), []byte(sinput))
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+const (
+	SignupOK int = 0 << iota
+	SignupUserExists
+	SignupErr
+)
+
+func isUsernameExists(db *sql.DB, username string) bool {
+	s := "SELECT user_id FROM user WHERE username = ?"
+	row := db.QueryRow(s, username)
+	var userid int64
+	err := row.Scan(&userid)
+	if err == sql.ErrNoRows {
+		return false
+	}
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func feedHandler(db *sql.DB, gfparser *gofeed.Parser) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		qurl := unescapeUrl(r.FormValue("url"))
@@ -530,4 +631,119 @@ func completeFeedUrl(ubase *url.URL, sfeedurl string) string {
 		ufeed.Path = path.Join(ubase.Path, ufeed.Path)
 	}
 	return ufeed.String()
+}
+
+var ErrLoginIncorrect = errors.New("Incorrect username or password")
+
+func login(db *sql.DB, username, pwd string) (string, error) {
+	s := "SELECT password FROM user WHERE username = ?"
+	row := db.QueryRow(s, username, pwd)
+	var hashedpwd string
+	err := row.Scan(&hashedpwd)
+	if err == sql.ErrNoRows {
+		return "", ErrLoginIncorrect
+	}
+	if err != nil {
+		return "", err
+	}
+	if !validateHash(hashedpwd, pwd) {
+		return "", ErrLoginIncorrect
+	}
+
+	// Return session token, this will be used to authenticate username
+	// on every request by calling validateHash(tok, username)
+	tok := genHash(username)
+	return tok, nil
+}
+
+type LoginResult struct {
+	Token string `json:"token"`
+	Error string `json:"error"`
+}
+
+func loginHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Use POST method", 401)
+			return
+		}
+
+		username := r.FormValue("username")
+		pwd := r.FormValue("pwd")
+		if username == "" {
+			http.Error(w, "username required", 401)
+			return
+		}
+		if pwd == "" {
+			http.Error(w, "pwd required", 401)
+			return
+		}
+
+		var result LoginResult
+		tok, err := login(db, username, pwd)
+		result.Token = tok
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		bs, _ := json.MarshalIndent(result, "", "\t")
+		P("%s\n", string(bs))
+	}
+}
+
+func signup(db *sql.DB, username, pwd string) error {
+	if isUsernameExists(db, username) {
+		return fmt.Errorf("username '%s' already exists", username)
+	}
+
+	hashedPwd := genHash(pwd)
+	s := "INSERT INTO user (username, password) VALUES (?, ?);"
+	_, err := sqlexec(db, s, username, hashedPwd)
+	if err != nil {
+		return fmt.Errorf("DB error creating user: %s", err)
+	}
+	return nil
+}
+func signupHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Use POST method", 401)
+			return
+		}
+
+		username := r.FormValue("username")
+		pwd := r.FormValue("pwd")
+		if username == "" {
+			http.Error(w, "username required", 401)
+			return
+		}
+		if pwd == "" {
+			http.Error(w, "pwd required", 401)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+
+		// Attempt to sign up new user.
+		var result LoginResult
+		err := signup(db, username, pwd)
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+			bs, _ := json.MarshalIndent(result, "", "\t")
+			P("%s\n", string(bs))
+			return
+		}
+
+		// Log in the newly signed up user.
+		tok, err := login(db, username, pwd)
+		result.Token = tok
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+		}
+		bs, _ := json.MarshalIndent(result, "", "\t")
+		P("%s\n", string(bs))
+	}
 }
