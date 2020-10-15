@@ -6,7 +6,7 @@
 
 JSFILES = index.js Grid.svelte RSSView.svelte
 
-all: t5 static/style.css static/bundle.js
+all: freerss static/style.css static/bundle.js
 
 dep:
 	sudo apt update
@@ -30,14 +30,14 @@ static/style.css: twsrc.css
 	#npx postcss twsrc.o > static/style.css
 	npx tailwind build twsrc.css -o static/style.css 1>/dev/null
 
-t5: t5.go
-	go build -o t5 t5.go
+freerss: freerss.go
+	go build -o freerss freerss.go
 
 static/bundle.js: $(JSFILES)
 	npx rollup -c
 
 clean:
-	rm -rf t5 static/*.js static/*.css static/*.map
+	rm -rf freerss static/*.js static/*.css static/*.map
 
 serve:
 	python -m SimpleHTTPServer
