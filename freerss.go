@@ -212,7 +212,8 @@ func run(args []string) error {
 
    Initialize new database file:
 	freerss -i <new db file>
-   `
+
+`
 		fmt.Printf(s)
 		return nil
 	}
@@ -662,25 +663,38 @@ type LoginResult struct {
 }
 
 func loginHandler(db *sql.DB) http.HandlerFunc {
+	type LoginReq struct {
+		Username string `json:"username"`
+		Pwd      string `json:"pwd"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "Use POST method", 401)
 			return
 		}
 
-		username := r.FormValue("username")
-		pwd := r.FormValue("pwd")
-		if username == "" {
+		bs, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			handleErr(w, err, "loginHandler")
+			return
+		}
+		var loginreq LoginReq
+		err = json.Unmarshal(bs, &loginreq)
+		if err != nil {
+			handleErr(w, err, "loginHandler")
+			return
+		}
+		if loginreq.Username == "" {
 			http.Error(w, "username required", 401)
 			return
 		}
-		if pwd == "" {
+		if loginreq.Pwd == "" {
 			http.Error(w, "pwd required", 401)
 			return
 		}
 
 		var result LoginResult
-		tok, err := login(db, username, pwd)
+		tok, err := login(db, loginreq.Username, loginreq.Pwd)
 		result.Token = tok
 		if err != nil {
 			result.Error = fmt.Sprintf("%s", err)
@@ -688,7 +702,7 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		P := makeFprintf(w)
-		bs, _ := json.MarshalIndent(result, "", "\t")
+		bs, _ = json.MarshalIndent(result, "", "\t")
 		P("%s\n", string(bs))
 	}
 }
@@ -707,19 +721,32 @@ func signup(db *sql.DB, username, pwd string) error {
 	return nil
 }
 func signupHandler(db *sql.DB) http.HandlerFunc {
+	type SignupReq struct {
+		Username string `json:"username"`
+		Pwd      string `json:"pwd"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "Use POST method", 401)
 			return
 		}
 
-		username := r.FormValue("username")
-		pwd := r.FormValue("pwd")
-		if username == "" {
+		bs, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			handleErr(w, err, "loginHandler")
+			return
+		}
+		var signupreq SignupReq
+		err = json.Unmarshal(bs, &signupreq)
+		if err != nil {
+			handleErr(w, err, "loginHandler")
+			return
+		}
+		if signupreq.Username == "" {
 			http.Error(w, "username required", 401)
 			return
 		}
-		if pwd == "" {
+		if signupreq.Pwd == "" {
 			http.Error(w, "pwd required", 401)
 			return
 		}
@@ -729,7 +756,7 @@ func signupHandler(db *sql.DB) http.HandlerFunc {
 
 		// Attempt to sign up new user.
 		var result LoginResult
-		err := signup(db, username, pwd)
+		err = signup(db, signupreq.Username, signupreq.Pwd)
 		if err != nil {
 			result.Error = fmt.Sprintf("%s", err)
 			bs, _ := json.MarshalIndent(result, "", "\t")
@@ -738,12 +765,12 @@ func signupHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Log in the newly signed up user.
-		tok, err := login(db, username, pwd)
+		tok, err := login(db, signupreq.Username, signupreq.Pwd)
 		result.Token = tok
 		if err != nil {
 			result.Error = fmt.Sprintf("%s", err)
 		}
-		bs, _ := json.MarshalIndent(result, "", "\t")
+		bs, _ = json.MarshalIndent(result, "", "\t")
 		P("%s\n", string(bs))
 	}
 }

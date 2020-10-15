@@ -1,7 +1,7 @@
 <script>
 import {onMount} from "svelte";
 import RSSView from "./RSSView.svelte";
-
+let svcurl = "http://localhost:8000/api";
 let cols = [];
 let _wid = 0;
 
@@ -206,6 +206,24 @@ function onaddwidget(e) {
     cols[0] = cols[0];
 }
 
+function onlogin(e) {
+    let sreq = `${svcurl}/login/`
+    let loginreq = {
+        username: "rob",
+        pwd: "abc2",
+    };
+    fetch(sreq, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(loginreq),
+    })
+    .then(res => res.json())
+    .then(body => {
+        console.log(body);
+    });
+
+}
+
 </script>
 
 <style>
@@ -213,12 +231,12 @@ function onaddwidget(e) {
 
 <div class="flex flex-row justify-between border-b border-gray-500 text-gray-200 pb-1 mb-2">
     <div>
-        <h1 class="inline self-end text-sm mr-2">FreeRSS</h1>
+        <h1 class="inline self-end text-sm ml-1 mr-2">FreeRSS</h1>
         <a href="about.html" class="self-end mr-2">About</a>
-        <a href="source.html" class="self-end mr-2">Source</a>
     </div>
     <div>
-        <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-1" on:click={onaddwidget}>Add Widget</a>
+        <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-2" on:click={onaddwidget}>Add Widget</a>
+        <a href="#a" class="self-end mr-1" on:click={onlogin}>Login</a>
     </div>
 </div>
 <div class="flex flex-row justify-center">

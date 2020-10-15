@@ -1,7 +1,6 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-
 let svcurl = "http://localhost:8000/api";
 
 export let feedurl = "";
