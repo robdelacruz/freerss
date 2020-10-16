@@ -1,9 +1,12 @@
 <script>
 import {onMount} from "svelte";
 import RSSView from "./RSSView.svelte";
-let svcurl = "http://localhost:8000/api";
+import LoginForm from "./LoginForm.svelte";
 let cols = [];
 let _wid = 0;
+
+let ui = {};
+ui.mode = "";
 
 function getHighestWid(cols) {
     let highestwid = 0;
@@ -207,21 +210,16 @@ function onaddwidget(e) {
 }
 
 function onlogin(e) {
-    let sreq = `${svcurl}/login/`
-    let loginreq = {
-        username: "rob",
-        pwd: "abc2",
-    };
-    fetch(sreq, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(loginreq),
-    })
-    .then(res => res.json())
-    .then(body => {
-        console.log(body);
-    });
-
+    ui.mode = "login";
+}
+function loginform_login(e) {
+    let tok = e.detail;
+    console.log(`loginform_login() tok: ${tok}`);
+    ui.mode = "";
+}
+function loginform_cancel(e) {
+    console.log(`loginform_cancel()`);
+    ui.mode = "";
 }
 
 </script>
@@ -239,15 +237,24 @@ function onlogin(e) {
         <a href="#a" class="self-end mr-1" on:click={onlogin}>Login</a>
     </div>
 </div>
-<div class="flex flex-row justify-center">
-{#each cols as col, icol}
-    <div data-icol={icol} class="dropzone w-widget mx-2 pb-32">
-    {#each cols[icol] as w, irow (w.wid)}
-    <RSSView bind:wid={cols[icol][irow].wid} bind:feedurl={cols[icol][irow].feedurl} bind:maxitems={cols[icol][irow].maxitems} on:updated={rssview_updated} on:deleted={rssview_deleted} />
+
+{#if ui.mode == ""}
+    <div class="flex flex-row justify-center">
+    {#each cols as col, icol}
+        <div data-icol={icol} class="dropzone w-widget mx-2 pb-32">
+        {#each cols[icol] as w, irow (w.wid)}
+        <RSSView bind:wid={cols[icol][irow].wid} bind:feedurl={cols[icol][irow].feedurl} bind:maxitems={cols[icol][irow].maxitems} on:updated={rssview_updated} on:deleted={rssview_deleted} />
+        {/each}
+        </div>
     {/each}
     </div>
-{/each}
-</div>
+{:else if ui.mode == "login"}
+    <div class="flex flex-row w-full h-screen justify-center items-center">
+        <div class="widget">
+            <LoginForm username="" pwd="" on:login={loginform_login} on:cancel={loginform_cancel} />
+        </div>
+    </div>
+{/if}
 
 <svelte:body
     on:dragstart={ondragstart}
