@@ -44,6 +44,11 @@ type Entry struct {
 	Pubdate string    `json:"pubdate"`
 	Pubtime time.Time `json:"-"`
 }
+type User struct {
+	Userid    int64
+	Username  string
+	HashedPwd string
+}
 
 func (f *Feed) String() string {
 	bs, err := json.MarshalIndent(f, "", "\t")
@@ -240,6 +245,8 @@ func run(args []string) error {
 	http.HandleFunc("/api/discoverfeed/", discoverfeedHandler(nil, gfparser))
 	http.HandleFunc("/api/signup/", signupHandler(db))
 	http.HandleFunc("/api/login/", loginHandler(db))
+	http.HandleFunc("/api/savegrid/", savegridHandler(db))
+	http.HandleFunc("/api/loadgrid/", loadgridHandler(db))
 
 	port := "8000"
 	fmt.Printf("Listening on %s...\n", port)
@@ -263,6 +270,7 @@ func createTables(newfile string) {
 	ss := []string{
 		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
 		"INSERT INTO user (user_id, username, password) VALUES (1, 'admin', '');",
+		"CREATE TABLE savedgrid (user_id INTEGER PRIMARY KEY NOT NULL, gridjson TEXT);",
 	}
 
 	tx, err := db.Begin()
@@ -472,21 +480,21 @@ func validateHash(shash, sinput string) bool {
 	return true
 }
 
-const (
-	SignupOK int = 0 << iota
-	SignupUserExists
-	SignupErr
-)
-
-func isUsernameExists(db *sql.DB, username string) bool {
-	s := "SELECT user_id FROM user WHERE username = ?"
+func findUser(db *sql.DB, username string) *User {
+	s := "SELECT user_id, username, password FROM user WHERE username = ?"
 	row := db.QueryRow(s, username)
-	var userid int64
-	err := row.Scan(&userid)
+	var u User
+	err := row.Scan(&u.Userid, &u.Username, &u.HashedPwd)
 	if err == sql.ErrNoRows {
-		return false
+		return nil
 	}
 	if err != nil {
+		return nil
+	}
+	return &u
+}
+func isUsernameExists(db *sql.DB, username string) bool {
+	if findUser(db, username) == nil {
 		return false
 	}
 	return true
@@ -658,7 +666,7 @@ func login(db *sql.DB, username, pwd string) (string, error) {
 }
 
 type LoginResult struct {
-	Token string `json:"token"`
+	Tok   string `json:"tok"`
 	Error string `json:"error"`
 }
 
@@ -672,7 +680,6 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "Use POST method", 401)
 			return
 		}
-
 		bs, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			handleErr(w, err, "loginHandler")
@@ -684,21 +691,13 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 			handleErr(w, err, "loginHandler")
 			return
 		}
-		if loginreq.Username == "" {
-			http.Error(w, "username required", 401)
-			return
-		}
-		if loginreq.Pwd == "" {
-			http.Error(w, "pwd required", 401)
-			return
-		}
 
 		var result LoginResult
 		tok, err := login(db, loginreq.Username, loginreq.Pwd)
-		result.Token = tok
 		if err != nil {
 			result.Error = fmt.Sprintf("%s", err)
 		}
+		result.Tok = tok
 
 		w.Header().Set("Content-Type", "application/json")
 		P := makeFprintf(w)
@@ -733,13 +732,13 @@ func signupHandler(db *sql.DB) http.HandlerFunc {
 
 		bs, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			handleErr(w, err, "loginHandler")
+			handleErr(w, err, "signupHandler")
 			return
 		}
 		var signupreq SignupReq
 		err = json.Unmarshal(bs, &signupreq)
 		if err != nil {
-			handleErr(w, err, "loginHandler")
+			handleErr(w, err, "signupHandler")
 			return
 		}
 		if signupreq.Username == "" {
@@ -766,11 +765,108 @@ func signupHandler(db *sql.DB) http.HandlerFunc {
 
 		// Log in the newly signed up user.
 		tok, err := login(db, signupreq.Username, signupreq.Pwd)
-		result.Token = tok
+		result.Tok = tok
 		if err != nil {
 			result.Error = fmt.Sprintf("%s", err)
 		}
 		bs, _ = json.MarshalIndent(result, "", "\t")
 		P("%s\n", string(bs))
+	}
+}
+
+func saveGrid(db *sql.DB, userid int64, gridjson string) error {
+	s := "INSERT OR REPLACE INTO savedgrid (user_id, gridjson) VALUES (?, ?);"
+	_, err := sqlexec(db, s, userid, gridjson)
+	if err != nil {
+		return fmt.Errorf("DB error saving grid: %s", err)
+	}
+	return nil
+}
+func savegridHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Use POST method", 401)
+			return
+		}
+
+		q := r.URL.Query()
+		username := q.Get("username")
+		tok := q.Get("tok")
+		if username == "" {
+			http.Error(w, "username required", 401)
+			return
+		}
+		if tok == "" {
+			http.Error(w, "tok required", 401)
+			return
+		}
+		bs, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			handleErr(w, err, "saveGrid")
+			return
+		}
+		gridjson := string(bs)
+
+		u := findUser(db, username)
+		if u == nil {
+			http.Error(w, fmt.Sprintf("No user '%s'", username), 401)
+			return
+		}
+		if !validateHash(tok, username) {
+			http.Error(w, fmt.Sprintf("Token not validated for '%s' ", u.Username), 401)
+			return
+		}
+		err = saveGrid(db, u.Userid, gridjson)
+		if err != nil {
+			handleErr(w, err, "saveGrid")
+			return
+		}
+	}
+}
+
+func loadGrid(db *sql.DB, userid int64) string {
+	s := "SELECT gridjson FROM savedgrid WHERE user_id = ?"
+	row := db.QueryRow(s, userid)
+	var gridjson string
+	err := row.Scan(&gridjson)
+	if err == sql.ErrNoRows {
+		return ""
+	}
+	if err != nil {
+		fmt.Printf("loadGrid() err: %s\n", err)
+		return ""
+	}
+	return gridjson
+}
+func loadgridHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		username := r.FormValue("username")
+		tok := r.FormValue("tok")
+		if username == "" {
+			http.Error(w, "username required", 401)
+			return
+		}
+		if tok == "" {
+			http.Error(w, "tok required", 401)
+			return
+		}
+
+		u := findUser(db, username)
+		if u == nil {
+			http.Error(w, fmt.Sprintf("No user '%s'", username), 401)
+			return
+		}
+		if !validateHash(tok, username) {
+			http.Error(w, fmt.Sprintf("Token not validated for '%s' ", u.Username), 401)
+			return
+		}
+		gridjson := loadGrid(db, u.Userid)
+		if gridjson == "" {
+			gridjson = "[]"
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		P("%s\n", gridjson)
 	}
 }

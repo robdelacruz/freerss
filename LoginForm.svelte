@@ -9,6 +9,8 @@ let frm = {};
 frm.mode = "";
 frm.status = "";
 
+// Post login username/pwd and async returns loginresult:
+// {tok: "", error: ""}
 async function login(username, pwd) {
     let sreq = `${svcurl}/login/`;
     let reqbody = {
@@ -23,12 +25,13 @@ async function login(username, pwd) {
         });
         if (!res.ok) {
             let err = await res.text();
-            return Promise.reject(err);
+            return {tok: "", error: err};
         }
         let result = await res.json();
         return result;
     } catch(err) {
-        return Promise.reject(err);
+        console.error(err);
+        return {tok: "", error: "server/network error"};
     }
 }
 
@@ -39,13 +42,11 @@ async function onlogin(e) {
     let result = await login(username, pwd);
     frm.mode = "";
     frm.status = "";
-
     if (result.error != "") {
         frm.status = result.error;
         return;
     }
-
-    dispatch("login", result.token);
+    dispatch("login", {username: username, tok: result.tok});
 }
 function oncancel(e) {
     username = "";
