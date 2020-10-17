@@ -3,11 +3,10 @@ import {onMount} from "svelte";
 import RSSView from "./RSSView.svelte";
 import LoginForm from "./LoginForm.svelte";
 let svcurl = "http://localhost:8000/api";
-let cols = [];
-let _wid = 0;
 
 let ui = {};
 ui.mode = "";
+ui.cols = [];
 
 function getHighestWid(cols) {
     let highestwid = 0;
@@ -26,20 +25,18 @@ onMount(function() {
         if (resultcols == null) {
             return;
         }
-        cols = resultcols;
+        ui.cols = resultcols;
     });
-    console.log(cols);
-    _wid = getHighestWid(cols);
 });
 
 function rssview_updated(e) {
-    saveCols(cols);
+    saveCols(ui.cols);
 }
 
 function rssview_deleted(e) {
-    removeWidget(cols, e.detail.wid);
-    cols = cols;
-    saveCols(cols);
+    removeWidget(ui.cols, e.detail.wid);
+    ui.cols = ui.cols;
+    saveCols(ui.cols);
 }
 
 function currentSession() {
@@ -144,10 +141,8 @@ async function saveCols(cols) {
 }
 
 function newWidget(feedurl, maxitems) {
-    _wid++;
-
     return {
-        wid: _wid,
+        wid: getHighestWid(ui.cols) + 1,
         feedurl: feedurl,
         maxitems: maxitems,
     };
@@ -202,12 +197,12 @@ function ondragstart(e) {
         e.preventDefault();
         return;
     }
-    let l = findWidgetLoc(cols, e.target);
+    let l = findWidgetLoc(ui.cols, e.target);
     if (l == null) {
         e.preventDefault();
         return;
     }
-    let jsonwidget = JSON.stringify(cols[l.col][l.row]);
+    let jsonwidget = JSON.stringify(ui.cols[l.col][l.row]);
     e.dataTransfer.setData("text/plain", jsonwidget);
 }
 function ondragenter(e) {
@@ -241,24 +236,24 @@ function ondrop(e) {
             return;
         }
 
-        removeWidget(cols, widget.wid);
+        removeWidget(ui.cols, widget.wid);
 
-        let l = findWidgetLoc(cols, target);
+        let l = findWidgetLoc(ui.cols, target);
         if (l == null) {
             return;
         }
-        cols[l.col].splice(l.row, 0, widget);
-        cols[l.col] = cols[l.col];
+        ui.cols[l.col].splice(l.row, 0, widget);
+        ui.cols[l.col] = ui.cols[l.col];
     } else {
         // "dropzone" column
-        removeWidget(cols, widget.wid);
+        removeWidget(ui.cols, widget.wid);
 
         let icol = target.getAttribute("data-icol");
-        cols[icol].push(widget);
-        cols[icol] = cols[icol];
+        ui.cols[icol].push(widget);
+        ui.cols[icol] = ui.cols[icol];
     }
 
-    saveCols(cols);
+    saveCols(ui.cols);
 }
 function ondragend(e) {
     if (!targetHasClass(e, "widget")) {
@@ -267,23 +262,23 @@ function ondragend(e) {
 
     // if drop was completed
 //    if (e.dataTransfer.dropEffect != "none") {
-//        let l = findWidgetLoc(cols, e.target);
+//        let l = findWidgetLoc(ui.cols, e.target);
 //        if (l == null) {
 //            return;
 //        }
-//        cols[l.col].splice(l.row, 1);
-//        cols[l.col] = cols[l.col];
+//        ui.cols[l.col].splice(l.row, 1);
+//        ui.cols[l.col] = ui.cols[l.col];
 //    }
 }
 
 // Add empty widget to the upper leftmost corner.
 function onaddwidget(e) {
-    let ncolstoadd = 3 - cols.length;
+    let ncolstoadd = 3 - ui.cols.length;
     for (let i=0; i < ncolstoadd; i++) {
-        cols.push([]);
+        ui.cols.push([]);
     }
-    cols[0].splice(0, 0, newWidget("", 0));
-    cols[0] = cols[0];
+    ui.cols[0].splice(0, 0, newWidget("", 0));
+    ui.cols[0] = ui.cols[0];
 }
 
 function onlogin(e) {
@@ -299,7 +294,7 @@ function loginform_login(e) {
         if (resultcols == null) {
             return;
         }
-        cols = resultcols;
+        ui.cols = resultcols;
     });
 }
 function loginform_cancel(e) {
@@ -322,12 +317,14 @@ function loginform_cancel(e) {
 
 {#if ui.mode == ""}
     <div class="flex flex-row justify-center">
-    {#each cols as col, icol}
+    {#each ui.cols as col, icol}
         <div data-icol={icol} class="dropzone w-widget mx-2 pb-32">
-        {#each cols[icol] as w, irow (w.wid)}
-        <RSSView bind:wid={cols[icol][irow].wid} bind:feedurl={cols[icol][irow].feedurl} bind:maxitems={cols[icol][irow].maxitems} on:updated={rssview_updated} on:deleted={rssview_deleted} />
+        {#each ui.cols[icol] as w, irow (w.wid)}
+        <RSSView bind:wid={ui.cols[icol][irow].wid} bind:feedurl={ui.cols[icol][irow].feedurl} bind:maxitems={ui.cols[icol][irow].maxitems} on:updated={rssview_updated} on:deleted={rssview_deleted} />
         {/each}
         </div>
+    {:else}
+        <p class="font-bold py-1 px-2 bg-gray-200 text-gray-800">Loading...</p>
     {/each}
     </div>
 {:else if ui.mode == "login"}
