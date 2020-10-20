@@ -1,8 +1,14 @@
 <script>
 import {onMount} from "svelte";
 import RSSView from "./RSSView.svelte";
-import LoginForm from "./LoginForm.svelte";
 let svcurl = "http://localhost:8000/api";
+
+// Use <Grid bind:this={mygrid} /> to call mygrid.sayhello()
+// https://stackoverflow.com/questions/58287729/how-can-i-export-a-function-from-a-svelte-component-that-changes-a-value-in-the
+export function sayhello() {
+    console.log("hello from Grid");
+    console.log(ui);
+}
 
 let ui = {};
 ui.mode = "";
@@ -21,13 +27,17 @@ function getHighestWid(cols) {
 }
 
 onMount(function() {
+    refresh();
+});
+
+export function refresh() {
     loadCols().then(resultcols => {
         if (resultcols == null) {
             return;
         }
         ui.cols = resultcols;
     });
-});
+}
 
 function rssview_updated(e) {
     saveCols(ui.cols);
@@ -272,7 +282,7 @@ function ondragend(e) {
 }
 
 // Add empty widget to the upper leftmost corner.
-function onaddwidget(e) {
+export function addwidget() {
     let ncolstoadd = 3 - ui.cols.length;
     for (let i=0; i < ncolstoadd; i++) {
         ui.cols.push([]);
@@ -281,59 +291,20 @@ function onaddwidget(e) {
     ui.cols[0] = ui.cols[0];
 }
 
-function onlogin(e) {
-    ui.mode = "login";
-}
-function loginform_login(e) {
-    let username = e.detail.username;
-    let tok = e.detail.tok;
-    document.cookie = `usernametok=${username}|${tok};path=/`;
-    ui.mode = "";
-
-    loadCols().then(resultcols => {
-        if (resultcols == null) {
-            return;
-        }
-        ui.cols = resultcols;
-    });
-}
-function loginform_cancel(e) {
-    console.log(`loginform_cancel()`);
-    ui.mode = "";
-}
 
 </script>
 
-<div class="flex flex-row justify-between border-b border-gray-500 text-gray-200 pb-1 mb-2">
-    <div>
-        <h1 class="inline self-end text-sm ml-1 mr-2">FreeRSS</h1>
-        <a href="about.html" class="self-end mr-2">About</a>
-    </div>
-    <div>
-        <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-2" on:click={onaddwidget}>Add Widget</a>
-        <a href="#a" class="self-end mr-1" on:click={onlogin}>Login</a>
-    </div>
-</div>
-
-{#if ui.mode == ""}
-    <div class="flex flex-row justify-center">
-    {#each ui.cols as col, icol}
-        <div data-icol={icol} class="dropzone w-widget mx-2 pb-32">
-        {#each ui.cols[icol] as w, irow (w.wid)}
-        <RSSView bind:wid={ui.cols[icol][irow].wid} bind:feedurl={ui.cols[icol][irow].feedurl} bind:maxitems={ui.cols[icol][irow].maxitems} on:updated={rssview_updated} on:deleted={rssview_deleted} />
-        {/each}
-        </div>
-    {:else}
-        <p class="font-bold py-1 px-2 bg-gray-200 text-gray-800">Loading...</p>
+<div class="flex flex-row justify-center">
+{#each ui.cols as col, icol}
+    <div data-icol={icol} class="dropzone w-widget mx-2 pb-32">
+    {#each ui.cols[icol] as w, irow (w.wid)}
+    <RSSView bind:wid={ui.cols[icol][irow].wid} bind:feedurl={ui.cols[icol][irow].feedurl} bind:maxitems={ui.cols[icol][irow].maxitems} on:updated={rssview_updated} on:deleted={rssview_deleted} />
     {/each}
     </div>
-{:else if ui.mode == "login"}
-    <div class="flex flex-row w-full h-screen justify-center items-center">
-        <div class="widget">
-            <LoginForm username="" pwd="" on:login={loginform_login} on:cancel={loginform_cancel} />
-        </div>
-    </div>
-{/if}
+{:else}
+    <p class="font-bold py-1 px-2 bg-gray-200 text-gray-800">Loading...</p>
+{/each}
+</div>
 
 <svelte:body
     on:dragstart={ondragstart}

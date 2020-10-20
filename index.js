@@ -1,5 +1,5 @@
-import Grid from "./Grid.svelte";
-let grid = new Grid({
+import App from "./App.svelte";
+let app = new App({
     target: document.querySelector("#container"),
     props: {
     },
