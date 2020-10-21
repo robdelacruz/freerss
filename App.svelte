@@ -5,8 +5,8 @@
     </div>
     <div>
         <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-2" on:click={onaddwidget}>Add Widget</a>
-{#if ui.session != null}
-        <p class="inline mr-2">{ui.session.username}</p>
+{#if ui.username != ""}
+        <p class="inline mr-2">{ui.username}</p>
         <a href="#a" class="inline self-end mr-1" on:click={onlogout}>Logout</a>
 {:else}
         <p class="inline italic mr-2">local-only</p>
@@ -15,7 +15,7 @@
     </div>
 </div>
 {#if ui.mode == ""}
-    <Grid bind:this={grid} />
+    <Grid bind:this={grid} username={ui.username} tok={ui.tok} />
 {:else if ui.mode == "login"}
     <div class="flex flex-row w-full">
         <div class="widget">
@@ -30,7 +30,10 @@ import LoginForm from "./LoginForm.svelte";
 let grid;
 let ui = {};
 ui.mode = "";
-ui.session = currentSession();
+
+let session = currentSession();
+ui.username = session.username;
+ui.tok = session.tok;
 
 function onaddwidget(e) {
     grid.addwidget();
@@ -40,6 +43,8 @@ function onlogin(e) {
     ui.mode = "login";
 }
 function onlogout(e) {
+    ui.username = "";
+    ui.tok = "";
 }
 function loginform_login(e) {
     ui.mode = "";
@@ -47,7 +52,8 @@ function loginform_login(e) {
     let tok = e.detail.tok;
     document.cookie = `usernametok=${username}|${tok};path=/`;
 
-    ui.session = currentSession();
+    ui.username = username;
+    ui.tok = tok;
 }
 function loginform_cancel(e) {
     ui.mode = "";
@@ -70,7 +76,7 @@ function currentSession() {
         }
         return {username: username, tok: tok};
     }
-    return null;
+    return {username: "", tok: ""};
 }
 
 </script>

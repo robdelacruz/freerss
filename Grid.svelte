@@ -2,17 +2,21 @@
 import {onMount} from "svelte";
 import RSSView from "./RSSView.svelte";
 let svcurl = "http://localhost:8000/api";
-
-// Use <Grid bind:this={mygrid} /> to call mygrid.sayhello()
-// https://stackoverflow.com/questions/58287729/how-can-i-export-a-function-from-a-svelte-component-that-changes-a-value-in-the
-export function sayhello() {
-    console.log("hello from Grid");
-    console.log(ui);
-}
+export let username = "";
+export let tok = "";
 
 let ui = {};
 ui.mode = "";
 ui.cols = [];
+
+$: {
+    loadCols(username, tok).then(resultcols => {
+        if (resultcols == null) {
+            return;
+        }
+        ui.cols = resultcols;
+    });
+}
 
 function getHighestWid(cols) {
     let highestwid = 0;
@@ -26,19 +30,6 @@ function getHighestWid(cols) {
     return highestwid;
 }
 
-onMount(function() {
-    refresh();
-});
-
-export function refresh() {
-    loadCols().then(resultcols => {
-        if (resultcols == null) {
-            return;
-        }
-        ui.cols = resultcols;
-    });
-}
-
 function rssview_updated(e) {
     saveCols(ui.cols);
 }
@@ -47,26 +38,6 @@ function rssview_deleted(e) {
     removeWidget(ui.cols, e.detail.wid);
     ui.cols = ui.cols;
     saveCols(ui.cols);
-}
-
-function currentSession() {
-    let cookies = document.cookie.split(";");
-    for (let i=0; i < cookies.length; i++) {
-        let cookie = cookies[i].trim();
-        let [k,v] = cookie.split("=");
-        if (k != "usernametok") {
-            continue;
-        }
-        if (v == undefined) {
-            v = "";
-        }
-        let [username, tok] = v.split("|");
-        if (tok == undefined) {
-            tok = "";
-        }
-        return {username: username, tok: tok};
-    }
-    return null;
 }
 
 async function loadGrid(username, tok) {
@@ -87,9 +58,8 @@ async function loadGrid(username, tok) {
         return null;
     }
 }
-async function loadCols() {
-    let session = currentSession();
-    if (session == null) {
+async function loadCols(username, tok) {
+    if (username == "") {
         // Restore from localStorage if present.
         let jsoncols = localStorage.getItem("cols");
         if (jsoncols != null) {
@@ -114,7 +84,7 @@ async function loadCols() {
         return initcols;
     }
 
-    let sessioncols = await loadGrid(session.username, session.tok);
+    let sessioncols = await loadGrid(username, tok);
     return sessioncols;
 }
 async function saveGrid(username, tok, cols) {
@@ -137,13 +107,12 @@ async function saveGrid(username, tok, cols) {
     }
 }
 async function saveCols(cols) {
-    let session = currentSession();
-    if (session == null) {
+    if (username == "") {
         localStorage.setItem("cols", JSON.stringify(cols));
         return;
     }
 
-    let wasSaved = await saveGrid(session.username, session.tok, cols);
+    let wasSaved = await saveGrid(username, tok, cols);
     if (!wasSaved) {
         console.error("Error saving grid");
         return;
