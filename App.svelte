@@ -19,7 +19,13 @@
 {:else if ui.mode == "login"}
     <div class="flex flex-row w-full">
         <div class="widget">
-            <LoginForm username="" pwd="" on:login={loginform_login} on:cancel={loginform_cancel} />
+            <LoginForm username="" pwd="" on:login={loginform_login} on:cancel={loginform_cancel} on:createaccount={loginform_createaccount} />
+        </div>
+    </div>
+{:else if ui.mode == "signup"}
+    <div class="flex flex-row w-full">
+        <div class="widget">
+            <SignupForm username="" pwd="" on:signup={loginform_login} on:cancel={loginform_cancel} />
         </div>
     </div>
 {/if}
@@ -27,6 +33,7 @@
 <script>
 import Grid from "./Grid.svelte";
 import LoginForm from "./LoginForm.svelte";
+import SignupForm from "./SignupForm.svelte";
 let grid;
 let ui = {};
 ui.mode = "";
@@ -45,8 +52,10 @@ function onlogin(e) {
 function onlogout(e) {
     ui.username = "";
     ui.tok = "";
+    document.cookie = `usernametok=;path=/`;
 }
 function loginform_login(e) {
+    console.error("loginform_login");
     ui.mode = "";
     let username = e.detail.username;
     let tok = e.detail.tok;
@@ -57,6 +66,9 @@ function loginform_login(e) {
 }
 function loginform_cancel(e) {
     ui.mode = "";
+}
+function loginform_createaccount(e) {
+    ui.mode = "signup";
 }
 
 function currentSession() {

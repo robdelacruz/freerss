@@ -4,15 +4,16 @@ let dispatch = createEventDispatcher();
 let svcurl = "http://localhost:8000/api";
 
 export let username = "";
-export let pwd = "";
+let pwd = "";
+let pwd2 = "";
 let frm = {};
 frm.mode = "";
 frm.status = "";
 
-// Post login username/pwd and async returns loginresult:
+// Post signup username/pwd and async returns loginresult:
 // {tok: "", error: ""}
-async function login(username, pwd) {
-    let sreq = `${svcurl}/login/`;
+async function signup(username, pwd) {
+    let sreq = `${svcurl}/signup/`;
     let reqbody = {
         username: username,
         pwd: pwd,
@@ -35,29 +36,30 @@ async function login(username, pwd) {
     }
 }
 
-async function onlogin(e) {
+async function onsignup(e) {
     e.preventDefault();
-    frm.mode = "loading";
-    frm.status = "Loging in...";
+    if (pwd != pwd2) {
+        frm.mode = "";
+        frm.status = "re-entered password doesn't match";
+        return;
+    }
 
-    let result = await login(username, pwd);
+    frm.mode = "loading";
+    frm.status = "Creating account...";
+
+    let result = await signup(username, pwd);
     frm.mode = "";
     frm.status = "";
     if (result.error != "") {
         frm.status = result.error;
         return;
     }
-    dispatch("login", {username: username, tok: result.tok});
+    dispatch("signup", {username: username, tok: result.tok});
 }
 function oncancel(e) {
-    e.preventDefault();
     username = "";
     pwd = "";
     dispatch("cancel");
-}
-function oncreatenewaccount(e) {
-    e.preventDefault();
-    dispatch("createaccount");
 }
 </script>
 
@@ -70,6 +72,10 @@ function oncreatenewaccount(e) {
         <label class="block bg-gray-800 text-gray-200" for="pwd">password</label>
         <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-0 px-2 w-full" id="pwd" name="pwd" type="password" bind:value={pwd}>
     </div>
+    <div class="mb-4">
+        <label class="block bg-gray-800 text-gray-200" for="pwd2">re-enter password</label>
+        <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-0 px-2 w-full" id="pwd2" name="pwd2" type="password" bind:value={pwd2}>
+    </div>
 {#if frm.status != ""}
     <div class="mb-2">
         <p class="font-bold bg-gray-800 text-gray-200">{frm.status}</p>
@@ -78,15 +84,12 @@ function oncreatenewaccount(e) {
     <div class="flex flex-row justify-center mb-4">
         <div>
 {#if frm.mode == "loading"}
-            <button disabled on:click={onlogin} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Login</button>
+            <button disabled on:click={onsignup} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Sign Up</button>
 {:else}
-            <button on:click={onlogin} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Login</button>
+            <button on:click={onsignup} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Sign Up</button>
 {/if}
             <button on:click={oncancel} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800">Cancel</button>
         </div>
-    </div>
-    <div class="flex flex-row justify-center">
-        <a on:click={oncreatenewaccount} href="#a">Create New Account</a>
     </div>
 </form>
 
