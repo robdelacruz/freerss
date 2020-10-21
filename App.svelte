@@ -13,7 +13,7 @@
                 </a>
             {#if ui.showmenu}
                 <div class="absolute top-auto right-0 py-1 bg-gray-400 text-gray-800 w-20 border border-gray-500 shadow-xs w-32">
-                    <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-black" role="menuitem" on:click={onpassword}>Change Password</a>
+                    <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-black" role="menuitem" on:click={onchangepassword}>Change Password</a>
                 </div>
             {/if}
             </div>
@@ -42,6 +42,12 @@
             <SignupForm username="" pwd="" on:signup={loginform_login} on:cancel={loginform_cancel} />
         </div>
     </div>
+{:else if ui.mode == "edituser"}
+    <div class="flex flex-row w-full">
+        <div class="widget">
+            <EditUserForm username="{ui.username}" on:update={loginform_login} on:cancel={loginform_cancel} />
+        </div>
+    </div>
 {/if}
 </div>
 
@@ -49,6 +55,7 @@
 import Grid from "./Grid.svelte";
 import LoginForm from "./LoginForm.svelte";
 import SignupForm from "./SignupForm.svelte";
+import EditUserForm from "./EditUserForm.svelte";
 let grid;
 let ui = {};
 ui.mode = "";
@@ -67,8 +74,9 @@ function onappclick(e) {
     console.log("onappclick");
     ui.showmenu = false;
 }
-function onpassword(e) {
+function onchangepassword(e) {
     ui.showmenu = false;
+    ui.mode = "edituser";
 }
 
 function onaddwidget(e) {
@@ -85,7 +93,6 @@ function onlogout(e) {
     document.cookie = `usernametok=;path=/`;
 }
 function loginform_login(e) {
-    console.error("loginform_login");
     ui.mode = "";
     let username = e.detail.username;
     let tok = e.detail.tok;
