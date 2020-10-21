@@ -57,6 +57,7 @@ async function onsignup(e) {
     dispatch("signup", {username: username, tok: result.tok});
 }
 function oncancel(e) {
+    e.preventDefault();
     username = "";
     pwd = "";
     dispatch("cancel");
