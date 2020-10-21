@@ -1,3 +1,74 @@
+<div data-wid={wid} draggable="true" class="widget w-full" on:click={onwidgetclick}>
+    <div class="flex flex-row justify-between">
+        <h1 class="text-sm font-bold border-b border-gray-500 w-full pb-1 mb-2">
+            {#if ui.feed}
+                {#if ui.feed.url != ""}
+                    <a href="{ui.feed.url}" class="" target="_blank">{ui.feed.title}</a>
+                {:else}
+                    <a href="#a" class="" target="_blank">{ui.feed.title}</a>
+                {/if}
+            {:else}
+                Select Feed
+            {/if}
+        </h1>
+        <div class="relative">
+            <button class="menubutton h-4 w-4" on:click={onmenu}>
+                <img class="" src="cheveron-down.svg" alt="settings">
+            </button>
+            {#if ui.showmenu}
+            <div class="absolute top-auto right-0 py-1 bg-gray-200 text-gray-800 w-20 border border-gray-500 shadow-xs">
+                <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem" on:click={onsettings}>Settings</a>
+                <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem" on:click={ondelete}>Delete</a>
+            </div>
+            {/if}
+        </div>
+    </div>
+
+{#if ui.mode == "loading"}
+    <p>Loading...</p>
+{:else if ui.mode == "display"}
+    {#if ui.err}
+        <p>Error ({ui.err})</p>
+    {:else if ui.feed}
+        <ul class="linklist">
+        {#each ui.feed.entries as entry}
+            <li>
+                <a href="{entry.url}" target="_blank" class="block">{entry.title}</a>
+            </li>
+        {/each}
+        </ul>
+    {/if}
+{:else if ui.mode == "settings"}
+    <form class="">
+        <div class="mb-2">
+            <label class="block" for="feedurl">Website/Feed url</label>
+            <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-0 px-2 w-full" id="feedurl" name="feedurl" type="text" bind:value={settingsform.feedurl}>
+        </div>
+        <div class="mb-2">
+            <label class="block" for="maxitems"># links to display</label>
+            <input class="block border border-gray-500 py-0 px-2 bg-gray-200 text-gray-800 w-10" id="maxitems" name="maxitems" maxlength="2" type="text" bind:value={settingsform.maxitems}>
+        </div>
+    {#if settingsform.status != ""}
+        <div class="mb-2">
+            <p class="font-bold">{settingsform.status}</p>
+        </div>
+    {/if}
+        <div class="flex flex-row justify-center">
+            <div>
+    {#if settingsform.mode == "loading"}
+                <button disabled on:click={onformupdate} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Update</button>
+    {:else}
+                <button on:click={onformupdate} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Update</button>
+    {/if}
+                <button on:click={onformcancel} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800">Cancel</button>
+            </div>
+        </div>
+    </form>
+{:else if ui.mode == "delete"}
+    <p>delete</p>
+{/if}
+</div>
+
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
@@ -184,75 +255,4 @@ function completeurl(surl) {
     return surl;
 }
 </script>
-
-<div data-wid={wid} draggable="true" class="widget w-full" on:click={onwidgetclick}>
-    <div class="flex flex-row justify-between">
-        <h1 class="text-sm font-bold border-b border-gray-500 w-full pb-1 mb-2">
-            {#if ui.feed}
-                {#if ui.feed.url != ""}
-                    <a href="{ui.feed.url}" class="" target="_blank">{ui.feed.title}</a>
-                {:else}
-                    <a href="#a" class="" target="_blank">{ui.feed.title}</a>
-                {/if}
-            {:else}
-                Select Feed
-            {/if}
-        </h1>
-        <div class="relative">
-            <button class="menubutton h-4 w-4" on:click={onmenu}>
-                <img class="" src="cheveron-down.svg" alt="settings">
-            </button>
-            {#if ui.showmenu}
-            <div class="absolute top-auto right-0 py-1 bg-gray-200 text-gray-800 w-20 border border-gray-500 shadow-xs">
-                <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem" on:click={onsettings}>Settings</a>
-                <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem" on:click={ondelete}>Delete</a>
-            </div>
-            {/if}
-        </div>
-    </div>
-
-{#if ui.mode == "loading"}
-    <p>Loading...</p>
-{:else if ui.mode == "display"}
-    {#if ui.err}
-        <p>Error ({ui.err})</p>
-    {:else if ui.feed}
-        <ul class="linklist">
-        {#each ui.feed.entries as entry}
-            <li>
-                <a href="{entry.url}" target="_blank" class="block">{entry.title}</a>
-            </li>
-        {/each}
-        </ul>
-    {/if}
-{:else if ui.mode == "settings"}
-    <form class="">
-        <div class="mb-2">
-            <label class="block" for="feedurl">Website/Feed url</label>
-            <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-0 px-2 w-full" id="feedurl" name="feedurl" type="text" bind:value={settingsform.feedurl}>
-        </div>
-        <div class="mb-2">
-            <label class="block" for="maxitems"># links to display</label>
-            <input class="block border border-gray-500 py-0 px-2 bg-gray-200 text-gray-800 w-10" id="maxitems" name="maxitems" maxlength="2" type="text" bind:value={settingsform.maxitems}>
-        </div>
-    {#if settingsform.status != ""}
-        <div class="mb-2">
-            <p class="font-bold">{settingsform.status}</p>
-        </div>
-    {/if}
-        <div class="flex flex-row justify-center">
-            <div>
-    {#if settingsform.mode == "loading"}
-                <button disabled on:click={onformupdate} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Update</button>
-    {:else}
-                <button on:click={onformupdate} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800 mr-2">Update</button>
-    {/if}
-                <button on:click={onformcancel} class="inline mx-auto py-1 px-2 bg-gray-200 text-gray-800">Cancel</button>
-            </div>
-        </div>
-    </form>
-{:else if ui.mode == "delete"}
-    <p>delete</p>
-{/if}
-</div>
 

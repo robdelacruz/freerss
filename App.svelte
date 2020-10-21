@@ -1,19 +1,33 @@
-<div class="flex flex-row justify-between border-b border-gray-500 text-gray-200 pb-1 mb-2">
-    <div>
-        <h1 class="inline self-end text-sm ml-1 mr-2">FreeRSS</h1>
-        <a href="about.html" class="self-end mr-2">About</a>
-        <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-1" on:click={onaddwidget}>Add Widget</a>
-    </div>
-    <div>
+<div on:click={onappclick}>
+    <div class="flex flex-row justify-between border-b border-gray-500 text-gray-200 pb-1 mb-2">
+        <div>
+            <h1 class="inline self-end text-sm ml-1 mr-2">FreeRSS</h1>
+            <a href="about.html" class="self-end mr-2">About</a>
+            <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-1" on:click={onaddwidget}>Add Widget</a>
+        </div>
+        <div>
 {#if ui.username != ""}
+            <div class="relative inline mr-2">
+                <a class="mr-1" href="#a" on:click={onmenu}>
+                    {ui.username}
+                </a>
+            {#if ui.showmenu}
+                <div class="absolute top-auto right-0 py-1 bg-gray-400 text-gray-800 w-20 border border-gray-500 shadow-xs w-32">
+                    <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-black" role="menuitem" on:click={onpassword}>Change Password</a>
+                </div>
+            {/if}
+            </div>
+            <a href="#a" class="inline self-end mr-1" on:click={onlogout}>Logout</a>
+<!--
         <p class="inline mr-2">{ui.username}</p>
         <a href="#a" class="inline self-end mr-1" on:click={onlogout}>Logout</a>
+-->
 {:else}
-        <p class="inline mr-2">(no user)</p>
-        <a href="#a" class="inline self-end mr-1" on:click={onlogin}>Login</a>
+            <a href="#a" class="inline self-end mr-1" on:click={onlogin}>Login</a>
 {/if}
+        </div>
     </div>
-</div>
+
 {#if ui.mode == ""}
     <Grid bind:this={grid} username={ui.username} tok={ui.tok} />
 {:else if ui.mode == "login"}
@@ -29,6 +43,7 @@
         </div>
     </div>
 {/if}
+</div>
 
 <script>
 import Grid from "./Grid.svelte";
@@ -37,10 +52,24 @@ import SignupForm from "./SignupForm.svelte";
 let grid;
 let ui = {};
 ui.mode = "";
+ui.showmenu = false;
 
 let session = currentSession();
 ui.username = session.username;
 ui.tok = session.tok;
+
+function onmenu(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    ui.showmenu = !ui.showmenu;
+}
+function onappclick(e) {
+    console.log("onappclick");
+    ui.showmenu = false;
+}
+function onpassword(e) {
+    ui.showmenu = false;
+}
 
 function onaddwidget(e) {
     grid.addwidget();
@@ -50,6 +79,7 @@ function onlogin(e) {
     ui.mode = "login";
 }
 function onlogout(e) {
+    ui.showmenu = false;
     ui.username = "";
     ui.tok = "";
     document.cookie = `usernametok=;path=/`;
