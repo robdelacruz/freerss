@@ -2,14 +2,14 @@
     <div>
         <h1 class="inline self-end text-sm ml-1 mr-2">FreeRSS</h1>
         <a href="about.html" class="self-end mr-2">About</a>
+        <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-1" on:click={onaddwidget}>Add Widget</a>
     </div>
     <div>
-        <a href="#a" class="text-xs bg-gray-400 text-gray-800 self-center rounded px-2 mr-2" on:click={onaddwidget}>Add Widget</a>
 {#if ui.username != ""}
         <p class="inline mr-2">{ui.username}</p>
         <a href="#a" class="inline self-end mr-1" on:click={onlogout}>Logout</a>
 {:else}
-        <p class="inline italic mr-2">local-only</p>
+        <p class="inline mr-2">(no user)</p>
         <a href="#a" class="inline self-end mr-1" on:click={onlogin}>Login</a>
 {/if}
     </div>

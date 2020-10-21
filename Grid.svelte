@@ -9,8 +9,10 @@ let ui = {};
 ui.mode = "";
 ui.cols = [];
 
+ui.mode = "loading";
 $: {
     loadCols(username, tok).then(resultcols => {
+        ui.mode = "";
         if (resultcols == null) {
             return;
         }
@@ -256,7 +258,7 @@ export function addwidget() {
     for (let i=0; i < ncolstoadd; i++) {
         ui.cols.push([]);
     }
-    ui.cols[0].splice(0, 0, newWidget("", 0));
+    ui.cols[0].splice(0, 0, newWidget("", 5));
     ui.cols[0] = ui.cols[0];
 }
 
@@ -264,15 +266,21 @@ export function addwidget() {
 </script>
 
 <div class="flex flex-row justify-center">
-{#each ui.cols as col, icol}
+{#if ui.mode == ""}
+    {#each ui.cols as col, icol}
     <div data-icol={icol} class="dropzone w-widget mx-2 pb-32">
-    {#each ui.cols[icol] as w, irow (w.wid)}
-    <RSSView bind:wid={ui.cols[icol][irow].wid} bind:feedurl={ui.cols[icol][irow].feedurl} bind:maxitems={ui.cols[icol][irow].maxitems} on:updated={rssview_updated} on:deleted={rssview_deleted} />
-    {/each}
+        {#each ui.cols[icol] as w, irow (w.wid)}
+        <RSSView bind:wid={ui.cols[icol][irow].wid} bind:feedurl={ui.cols[icol][irow].feedurl} bind:maxitems={ui.cols[icol][irow].maxitems} on:updated={rssview_updated} on:deleted={rssview_deleted} />
+        {/each}
     </div>
-{:else}
+    {:else}
+    <p class="py-1 px-2 bg-gray-200 text-gray-800">You don't have any widgets yet. 
+        <a on:click={addwidget} href="#a" class="underline">Add new widget</a>
+    </p>
+    {/each}
+{:else if ui.mode == "loading"}
     <p class="font-bold py-1 px-2 bg-gray-200 text-gray-800">Loading...</p>
-{/each}
+{/if}
 </div>
 
 <svelte:body

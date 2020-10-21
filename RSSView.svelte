@@ -78,12 +78,14 @@ function onwidgetclick(e) {
     ui.showmenu = false;
 }
 function onsettings(e) {
+    e.preventDefault();
     ui.mode = "settings";
     settingsform.status = "";
     settingsform.feedurl = feedurl;
     settingsform.maxitems = maxitems;
 }
 function ondelete(e) {
+    e.preventDefault();
     ui.mode = "delete";
 
     let widget = {
@@ -103,6 +105,7 @@ async function onformupdate(e) {
         return;
     }
 
+    settingsform.feedurl = completeurl(settingsform.feedurl);
     if (settingsform.feedurl != feedurl) {
         try {
             settingsform.mode = "loading";
@@ -155,6 +158,31 @@ async function discoverfeeds(qurl) {
     let feeds = await res.json();
     return feeds;
 }
+
+let _suggestions = [
+    "http://www.everything2.org",
+    "http://www.slashdot.org",
+    "http://news.ycombinator.com",
+    "http://www.lwn.net",
+    "http://www.lewrockwell.com",
+    "http://www.zerohedge.com",
+    "http://www.naturalnews.com",
+];
+function suggesturl() {
+    let s = _suggestions[Math.floor(Math.random()*_suggestions.length)];
+    return s;
+}
+
+function completeurl(surl) {
+    surl = surl.trim();
+    if (!surl.startsWith("http://")) {
+        return `http://${surl}`;
+    }
+    if (surl.startsWith("//")) {
+        return `http:${surl}`;
+    }
+    return surl;
+}
 </script>
 
 <div data-wid={wid} draggable="true" class="widget w-full" on:click={onwidgetclick}>
@@ -196,11 +224,11 @@ async function discoverfeeds(qurl) {
 {:else if ui.mode == "settings"}
     <form class="">
         <div class="mb-2">
-            <label class="block" for="feedurl">feed url</label>
+            <label class="block" for="feedurl">Website/Feed url</label>
             <input class="block border border-gray-500 bg-gray-200 text-gray-800 py-0 px-2 w-full" id="feedurl" name="feedurl" type="text" bind:value={settingsform.feedurl}>
         </div>
         <div class="mb-2">
-            <label class="block" for="maxitems">max items</label>
+            <label class="block" for="maxitems"># links to display</label>
             <input class="block border border-gray-500 py-0 px-2 bg-gray-200 text-gray-800 w-10" id="maxitems" name="maxitems" maxlength="2" type="text" bind:value={settingsform.maxitems}>
         </div>
     {#if settingsform.status != ""}
