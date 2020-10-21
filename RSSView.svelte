@@ -187,9 +187,13 @@ function completeurl(surl) {
 
 <div data-wid={wid} draggable="true" class="widget w-full" on:click={onwidgetclick}>
     <div class="flex flex-row justify-between">
-        <h1 class="text-sm font-bold border-b border-gray-500 pb-1 mb-2">
+        <h1 class="text-sm font-bold border-b border-gray-500 w-full pb-1 mb-2">
             {#if ui.feed}
-                {ui.feed.title}
+                {#if ui.feed.url != ""}
+                    <a href="{ui.feed.url}" class="" target="_blank">{ui.feed.title}</a>
+                {:else}
+                    <a href="#a" class="" target="_blank">{ui.feed.title}</a>
+                {/if}
             {:else}
                 Select Feed
             {/if}
