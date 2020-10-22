@@ -4,7 +4,7 @@
 # 'make' to build css and js into static/
 # 'make serve' to start dev webserver
 
-JSFILES = index.js App.svelte Grid.svelte RSSView.svelte LoginForm.svelte SignupForm.svelte EditUserForm.svelte
+JSFILES = index.js App.svelte Grid.svelte RSSView.svelte LoginForm.svelte SignupForm.svelte EditUserForm.svelte DelUserForm.svelte
 
 all: freerss static/style.css static/bundle.js
 

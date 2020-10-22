@@ -12,8 +12,9 @@
                     {ui.username}
                 </a>
             {#if ui.showmenu}
-                <div class="absolute top-auto right-0 py-1 bg-gray-400 text-gray-800 w-20 border border-gray-500 shadow-xs w-32">
-                    <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-black" role="menuitem" on:click={onchangepassword}>Change Password</a>
+                <div class="absolute top-auto right-0 py-1 bg-gray-200 text-gray-800 w-20 border border-gray-500 shadow-xs w-32">
+                    <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem" on:click={onchangepassword}>Change Password</a>
+                    <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem" on:click={ondeluser}>Delete Account</a>
                 </div>
             {/if}
             </div>
@@ -48,6 +49,12 @@
             <EditUserForm username="{ui.username}" on:update={loginform_login} on:cancel={loginform_cancel} />
         </div>
     </div>
+{:else if ui.mode == "deluser"}
+    <div class="flex flex-row w-full">
+        <div class="widget">
+            <DelUserForm username="{ui.username}" on:del={onlogout} on:cancel={loginform_cancel} />
+        </div>
+    </div>
 {/if}
 </div>
 
@@ -56,6 +63,7 @@ import Grid from "./Grid.svelte";
 import LoginForm from "./LoginForm.svelte";
 import SignupForm from "./SignupForm.svelte";
 import EditUserForm from "./EditUserForm.svelte";
+import DelUserForm from "./DelUserForm.svelte";
 let grid;
 let ui = {};
 ui.mode = "";
@@ -78,6 +86,10 @@ function onchangepassword(e) {
     ui.showmenu = false;
     ui.mode = "edituser";
 }
+function ondeluser(e) {
+    ui.showmenu = false;
+    ui.mode = "deluser";
+}
 
 function onaddwidget(e) {
     grid.addwidget();
@@ -87,6 +99,7 @@ function onlogin(e) {
     ui.mode = "login";
 }
 function onlogout(e) {
+    ui.mode = "";
     ui.showmenu = false;
     ui.username = "";
     ui.tok = "";

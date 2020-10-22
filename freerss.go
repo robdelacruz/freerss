@@ -246,6 +246,7 @@ func run(args []string) error {
 	http.HandleFunc("/api/login/", loginHandler(db))
 	http.HandleFunc("/api/signup/", signupHandler(db))
 	http.HandleFunc("/api/edituser/", edituserHandler(db))
+	http.HandleFunc("/api/deluser/", deluserHandler(db))
 	http.HandleFunc("/api/savegrid/", savegridHandler(db))
 	http.HandleFunc("/api/loadgrid/", loadgridHandler(db))
 
@@ -882,12 +883,16 @@ func deluserHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Attempt to delete user.
+		var result LoginResult
 		err = deluser(db, req.Username, req.Pwd)
 		if err != nil {
-			fmt.Printf("Error deleting user (%s)\n", err)
-			http.Error(w, "Server error deleting user", 500)
-			return
+			result.Error = fmt.Sprintf("%s", err)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		bs, _ = json.MarshalIndent(result, "", "\t")
+		P("%s\n", string(bs))
 	}
 }
 
