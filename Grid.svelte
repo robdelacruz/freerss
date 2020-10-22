@@ -71,7 +71,7 @@ function defaultCols() {
     w3.wid = 3;
     let w4 = newWidget("https://feeds.feedburner.com/zerohedge/feed", 5, false);
     w4.wid = 4;
-    let w5 = newWidget("", 5, false);
+    let w5 = newWidget("http://fortune2.robdelacruz.com/fortune/?outputfmt=rss&sw=ec", 5, false);
     w5.wid = 5;
     return [[w1, w2], [w3, w4], [w5]];
 }
