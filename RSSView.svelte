@@ -12,6 +12,9 @@
             {/if}
         </h1>
         <div class="relative">
+            <button class="menubutton h-4 w-4" on:click={onrefresh}>
+                <img class="" src="refresh.svg" alt="refresh">
+            </button>
             <button class="menubutton h-4 w-4" on:click={onmenu}>
                 <img class="" src="cheveron-down.svg" alt="settings">
             </button>
@@ -157,6 +160,12 @@ function targetHasClass(e, ...cc) {
     return false;
 }
 
+function onrefresh(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    ui.showmenu = false;
+    reloadDisplay();
+}
 function onmenu(e) {
     e.preventDefault();
     e.stopPropagation();
