@@ -33,7 +33,16 @@
         <ul class="linklist">
         {#each ui.feed.entries as entry}
             <li>
-                <a href="{entry.url}" target="_blank" class="block">{entry.title}</a>
+            {#if preview}
+                <div class="mb-3">
+                    <a class="block text-gray-200 text-xs mb-1" href="{entry.url}" target="_blank">{entry.title}</a>
+                    <div class="content text-gray-500">
+                        {@html entry.desc}
+                    </div>
+                </div>
+            {:else}
+                <a class="block" href="{entry.url}" target="_blank">{entry.title}</a>
+            {/if}
             </li>
         {/each}
         </ul>
@@ -47,6 +56,12 @@
         <div class="mb-2">
             <label class="block" for="maxitems"># links to display</label>
             <input class="block border border-gray-500 py-0 px-2 bg-gray-200 text-gray-800 w-10" id="maxitems" name="maxitems" maxlength="2" type="text" bind:value={settingsform.maxitems}>
+        </div>
+        <div class="mb-2">
+            <label class="inline-flex items-center" for="preview">
+                <input class="mr-1" id="preview" name="preview" type="checkbox" bind:checked={settingsform.preview}>
+                <span class="">show preview</span>
+            </label>
         </div>
     {#if settingsform.status != ""}
         <div class="mb-2">
@@ -76,6 +91,7 @@ let svcurl = "http://localhost:8000/api";
 
 export let feedurl = "";
 export let maxitems = 10;
+export let preview = true;
 export let wid = 0;
 let container;
 
@@ -95,6 +111,7 @@ settingsform.mode = "";
 settingsform.status = "";
 settingsform.feedurl = feedurl;
 settingsform.maxitems = maxitems;
+settingsform.preview = preview;
 
 onMount(function() {
     reloadDisplay();
@@ -154,6 +171,7 @@ function onsettings(e) {
     settingsform.status = "";
     settingsform.feedurl = feedurl;
     settingsform.maxitems = maxitems;
+    settingsform.preview = preview;
 }
 function ondelete(e) {
     e.preventDefault();
@@ -162,7 +180,8 @@ function ondelete(e) {
     let widget = {
         wid: wid,
         feedurl: feedurl,
-        maxitem: maxitems,
+        maxitems: maxitems,
+        preview: preview,
     };
     dispatch("deleted", widget);
 }
@@ -201,12 +220,14 @@ async function onformupdate(e) {
     }
 
     maxitems = settingsform.maxitems;
+    preview = settingsform.preview;
     reloadDisplay();
 
     let widget = {
         wid: wid,
         feedurl: feedurl,
-        maxitem: maxitems,
+        maxitems: maxitems,
+        preview: preview,
     };
     dispatch("updated", widget);
 }
@@ -216,6 +237,7 @@ function onformcancel(e) {
     // restore previous settings
     settingsform.feedurl = feedurl;
     settingsform.maxitems = maxitems;
+    settingsform.preview = preview;
     ui.mode = "display";
 }
 

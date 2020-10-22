@@ -72,15 +72,15 @@ async function loadCols(username, tok) {
         let nitems = 5;
         let initcols = [
             [
-                newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", 8),
-                newWidget("https://news.ycombinator.com/rss", 10),
+                newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", 8, true),
+                newWidget("https://news.ycombinator.com/rss", 10, true),
             ],
             [
-                newWidget("https://www.lewrockwell.com/feed/", 8),
-                newWidget("https://feeds.feedburner.com/zerohedge/feed", 8),
+                newWidget("https://www.lewrockwell.com/feed/", 8, true),
+                newWidget("https://feeds.feedburner.com/zerohedge/feed", 8, true),
             ],
             [
-                newWidget("", nitems),
+                newWidget("", nitems, true),
             ],
         ];
         return initcols;
@@ -121,11 +121,12 @@ async function saveCols(cols) {
     }
 }
 
-function newWidget(feedurl, maxitems) {
+function newWidget(feedurl, maxitems, preview) {
     return {
         wid: getHighestWid(ui.cols) + 1,
         feedurl: feedurl,
         maxitems: maxitems,
+        preview: preview,
     };
 }
 
@@ -258,7 +259,7 @@ export function addwidget() {
     for (let i=0; i < ncolstoadd; i++) {
         ui.cols.push([]);
     }
-    ui.cols[0].splice(0, 0, newWidget("", 5));
+    ui.cols[0].splice(0, 0, newWidget("", 5, true));
     ui.cols[0] = ui.cols[0];
 }
 
@@ -270,7 +271,7 @@ export function addwidget() {
     {#each ui.cols as col, icol}
     <div data-icol={icol} class="dropzone w-widget mx-2 pb-32">
         {#each ui.cols[icol] as w, irow (w.wid)}
-        <RSSView bind:wid={ui.cols[icol][irow].wid} bind:feedurl={ui.cols[icol][irow].feedurl} bind:maxitems={ui.cols[icol][irow].maxitems} on:updated={rssview_updated} on:deleted={rssview_deleted} />
+        <RSSView bind:wid={ui.cols[icol][irow].wid} bind:feedurl={ui.cols[icol][irow].feedurl} bind:maxitems={ui.cols[icol][irow].maxitems} bind:preview={ui.cols[icol][irow].preview} on:updated={rssview_updated} on:deleted={rssview_deleted} />
         {/each}
     </div>
     {:else}
