@@ -20,18 +20,6 @@ $: {
     });
 }
 
-function getHighestWid(cols) {
-    let highestwid = 0;
-    for (let icol=0; icol < cols.length; icol++) {
-        for (let irow=0; irow < cols[icol].length; irow++) {
-            if (cols[icol][irow].wid > highestwid) {
-                highestwid = cols[icol][irow].wid;
-            }
-        }
-    }
-    return highestwid;
-}
-
 function rssview_updated(e) {
     saveCols(ui.cols);
 }
@@ -67,28 +55,33 @@ async function loadCols(username, tok) {
         if (jsoncols != null) {
             return JSON.parse(jsoncols);
         }
-
-        // Default widgets, if first time page was accessed.
-        let nitems = 5;
-        let initcols = [
-            [
-                newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", 8, true),
-                newWidget("https://news.ycombinator.com/rss", 10, true),
-            ],
-            [
-                newWidget("https://www.lewrockwell.com/feed/", 8, true),
-                newWidget("https://feeds.feedburner.com/zerohedge/feed", 8, true),
-            ],
-            [
-                newWidget("", nitems, true),
-            ],
-        ];
-        return initcols;
+        // Return default widgets, if first time page was accessed.
+        return defaultCols();
     }
 
     let sessioncols = await loadGrid(username, tok);
     return sessioncols;
 }
+function defaultCols() {
+    let w1 = newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", 5, false);
+    w1.wid = 1;
+    let w2 = newWidget("https://news.ycombinator.com/rss", 10, false);
+    w2.wid = 2;
+    let w3 = newWidget("https://www.lewrockwell.com/feed/", 5, false);
+    w3.wid = 3;
+    let w4 = newWidget("https://feeds.feedburner.com/zerohedge/feed", 5, false);
+    w4.wid = 4;
+    let w5 = newWidget("", 5, false);
+    w5.wid = 5;
+    return [[w1, w2], [w3, w4], [w5]];
+}
+function adddefaultwidgets(e) {
+    if (ui.cols.length > 0) {
+        return;
+    }
+    ui.cols = defaultCols();
+}
+
 async function saveGrid(username, tok, cols) {
     let sreq = `${svcurl}/savegrid/?username=${username}&tok=${tok}`;
     try {
@@ -121,6 +114,17 @@ async function saveCols(cols) {
     }
 }
 
+function getHighestWid(cols) {
+    let highestwid = 0;
+    for (let icol=0; icol < cols.length; icol++) {
+        for (let irow=0; irow < cols[icol].length; irow++) {
+            if (cols[icol][irow].wid > highestwid) {
+                highestwid = cols[icol][irow].wid;
+            }
+        }
+    }
+    return highestwid;
+}
 function newWidget(feedurl, maxitems, preview) {
     return {
         wid: getHighestWid(ui.cols) + 1,
@@ -275,8 +279,9 @@ export function addwidget() {
         {/each}
     </div>
     {:else}
-    <p class="py-1 px-2 bg-gray-200 text-gray-800">You don't have any widgets yet. 
-        <a on:click={addwidget} href="#a" class="underline">Add new widget</a>
+    <p class="py-1 px-2 bg-gray-200 text-gray-800">You don't have any widgets yet.<br> 
+        <a on:click={addwidget} href="#a" class="underline">Add a new widget</a> or 
+        <a on:click={adddefaultwidgets} href="#a" class="underline">Add sample widgets</a> 
     </p>
     {/each}
 {:else if ui.mode == "loading"}

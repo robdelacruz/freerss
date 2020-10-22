@@ -14,15 +14,16 @@
             {#if ui.showmenu}
                 <div class="absolute top-auto right-0 py-1 bg-gray-200 text-gray-800 w-20 border border-gray-500 shadow-xs w-32">
                     <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem" on:click={onchangepassword}>Change Password</a>
+                    {#if ui.username != "admin"}
                     <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem" on:click={ondeluser}>Delete Account</a>
+                    {/if}
+                    {#if ui.username == "admin"}
+                    <a href="#a" class="block leading-none px-2 py-1 hover:bg-gray-400 hover:text-gray-900" role="menuitem" on:click={onresetlocalstorage}>Reset LocalStorage</a>
+                    {/if}
                 </div>
             {/if}
             </div>
             <a href="#a" class="inline self-end mr-1" on:click={onlogout}>Logout</a>
-<!--
-        <p class="inline mr-2">{ui.username}</p>
-        <a href="#a" class="inline self-end mr-1" on:click={onlogout}>Logout</a>
--->
 {:else}
             <a href="#a" class="inline self-end mr-1" on:click={onlogin}>Login</a>
 {/if}
@@ -89,6 +90,9 @@ function onchangepassword(e) {
 function ondeluser(e) {
     ui.showmenu = false;
     ui.mode = "deluser";
+}
+function onresetlocalstorage(e) {
+    localStorage.removeItem("cols");
 }
 
 function onaddwidget(e) {

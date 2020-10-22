@@ -26,4 +26,5 @@
 .content img[src*="#stretch"] {width: 100%;}
 .content img[src*="#left"] {@apply float-left mr-2;}
 .content img[src*="#right"] {@apply float-right ml-2;}
+.content iframe {@apply w-full;}
 
