@@ -246,7 +246,7 @@ function suggesturl() {
 
 function completeurl(surl) {
     surl = surl.trim();
-    if (!surl.startsWith("http://")) {
+    if (!surl.startsWith("http://") && !surl.startsWith("https://")) {
         return `http://${surl}`;
     }
     if (surl.startsWith("//")) {
