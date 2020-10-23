@@ -7,3 +7,5 @@ https://developer.feedly.com/v3/search/
 
 https://stackoverflow.com/questions/45267125/how-to-generate-unique-random-alphanumeric-tokens-in-golang
 
+https://stackoverflow.com/questions/8054429/how-do-i-handle-a-click-anywhere-in-the-page-even-when-a-certain-element-stops
+
