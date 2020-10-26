@@ -1,4 +1,4 @@
-<div data-wid={wid} draggable="true" class="widget w-full" on:click={onwidgetclick}>
+<div data-wid={wid} draggable="true" class="rssview widget w-full">
     <div class="flex flex-row justify-between w-full border-b border-gray-500 pb-1 mb-2">
         <h1 class="text-sm font-bold">
             {#if ui.feed}
@@ -118,6 +118,12 @@ settingsform.preview = preview;
 
 onMount(function() {
     reloadDisplay();
+
+    // Close any open pop-up menus when appclick signal received.
+    let rssview = document.querySelector(`[data-wid="${wid}"]`);
+    rssview.addEventListener("appclick", function(e) {
+        ui.showmenu = false;
+    });
 });
 
 function reloadDisplay() {
@@ -170,9 +176,6 @@ function onmenu(e) {
     e.preventDefault();
     e.stopPropagation();
     ui.showmenu = !ui.showmenu;
-}
-function onwidgetclick(e) {
-    ui.showmenu = false;
 }
 function onsettings(e) {
     e.preventDefault();

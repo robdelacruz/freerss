@@ -1,4 +1,4 @@
-<div on:click={onappclick}>
+<div>
     <div class="flex flex-row justify-between border-b border-gray-500 text-gray-200 pb-1 mb-2">
         <div>
             <h1 class="inline self-end text-sm ml-1 mr-2">FreeRSS</h1>
@@ -74,14 +74,23 @@ let session = currentSession();
 ui.username = session.username;
 ui.tok = session.tok;
 
+document.addEventListener("click", onappclick, false);
+
 function onmenu(e) {
     e.preventDefault();
     e.stopPropagation();
     ui.showmenu = !ui.showmenu;
 }
 function onappclick(e) {
-    console.log("onappclick");
     ui.showmenu = false;
+
+    // Send signal to close any open pop-up menus in RSSViews.
+    let rssviews = document.querySelectorAll(".rssview");
+    for (let i=0; i < rssviews.length; i++) {
+        let rssview = rssviews[i];
+        let e = new Event("appclick");
+        rssview.dispatchEvent(e);
+    }
 }
 function onchangepassword(e) {
     ui.showmenu = false;
