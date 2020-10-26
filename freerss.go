@@ -213,7 +213,7 @@ func run(args []string) error {
 		s := `Usage:
 
    Start webservice using database file:
-	freerss <db file>
+	freerss <db file> [port]
 
    Initialize new database file:
 	freerss -i <new db file>
@@ -251,6 +251,9 @@ func run(args []string) error {
 	http.HandleFunc("/api/loadgrid/", loadgridHandler(db))
 
 	port := "8000"
+	if len(parms) > 1 {
+		port = parms[1]
+	}
 	fmt.Printf("Listening on %s...\n", port)
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	return err

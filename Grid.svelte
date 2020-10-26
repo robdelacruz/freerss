@@ -1,7 +1,7 @@
 <script>
 import {onMount} from "svelte";
 import RSSView from "./RSSView.svelte";
-let svcurl = "http://localhost:8000/api";
+let svcurl = "/api";
 export let username = "";
 export let tok = "";
 

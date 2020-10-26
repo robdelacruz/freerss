@@ -11,7 +11,7 @@
                 Select Feed
             {/if}
         </h1>
-        <div class="relative">
+        <div class="flex-shrink-0 relative">
             <button class="menubutton h-4 w-4" on:click={onrefresh}>
                 <img class="" src="refresh.svg" alt="refresh">
             </button>
@@ -90,7 +90,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-let svcurl = "http://localhost:8000/api";
+let svcurl = "/api";
 
 export let feedurl = "";
 export let maxitems = 10;
