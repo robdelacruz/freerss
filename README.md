@@ -25,6 +25,7 @@ Build and test:
 ## Screenshots
 
 ![freerss portal](screenshots/freerss_portal.png)
+![widgets with preview](screenshots/freerss_withpreview.png)
 
 ## Contact
     Twitter: @robdelacruz
