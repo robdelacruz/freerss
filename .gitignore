@@ -1,4 +1,5 @@
 *.swp
+*.o
 *.db
 *.map
 node_modules

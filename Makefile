@@ -26,9 +26,9 @@ webtools:
 	npm install --save-dev @rollup/plugin-node-resolve
 
 static/style.css: twsrc.css
-	#npx tailwind build twsrc.css -o twsrc.o 1>/dev/null
-	#npx postcss twsrc.o > static/style.css
-	npx tailwind build twsrc.css -o static/style.css 1>/dev/null
+	npx tailwind build twsrc.css -o twsrc.o 1>/dev/null
+	npx postcss twsrc.o > static/style.css
+	#npx tailwind build twsrc.css -o static/style.css 1>/dev/null
 
 freerss: freerss.go
 	go build -o freerss freerss.go

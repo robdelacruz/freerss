@@ -1,15 +1,11 @@
-## jstest
+## FreeRSS
 
-A simplified frontend web development template.
+Web-based RSS Viewer and Portal.
 
-Uses the following web tools:
-- [Tailwind CSS](https://tailwindcss.com)
+Uses the following tools:
+- [gofeed library](https://github.com/mmcdole/gofeed)
 - [Svelte](https://svelte.dev)
-- [Rollup](https://rollupjs.org)
-
-`postcss` and `cssnano` are used to optionally compress css if needed.
-
-`Make` is used to build rather than *npm*. No *package.json* file is used.
+- [Tailwind CSS](https://tailwindcss.com)
 
 ## Usage
 
@@ -22,11 +18,15 @@ Build and test:
 
     $ make clean
     $ make
-    $ make serve
+    $ freerss -i portal.db
 
-See the comments in *Makefile*.
+    Run 'freerss portal.db' to start the web service.
+
+## Screenshots
+
+![freerss portal](screenshots/freerss_portal.png)
 
 ## Contact
     Twitter: @robdelacruz
-    Source: http://github.com/robdelacruz
+    Source: http://github.com/robdelacruz/freerss
 
