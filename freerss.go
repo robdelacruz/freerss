@@ -647,26 +647,34 @@ func completeFeedUrl(ubase *url.URL, sfeedurl string) string {
 	return ufeed.String()
 }
 
+func genTok(u *User) string {
+	tok := genHash(fmt.Sprintf("%s_%s", u.Username, u.HashedPwd))
+	return tok
+}
+func validateTok(tok string, u *User) bool {
+	return validateHash(tok, fmt.Sprintf("%s_%s", u.Username, u.HashedPwd))
+}
+
 var ErrLoginIncorrect = errors.New("Incorrect username or password")
 
 func login(db *sql.DB, username, pwd string) (string, error) {
-	s := "SELECT password FROM user WHERE username = ?"
-	row := db.QueryRow(s, username, pwd)
-	var hashedpwd string
-	err := row.Scan(&hashedpwd)
+	var u User
+	s := "SELECT user_id, username, password FROM user WHERE username = ?"
+	row := db.QueryRow(s, username)
+	err := row.Scan(&u.Userid, &u.Username, &u.HashedPwd)
 	if err == sql.ErrNoRows {
 		return "", ErrLoginIncorrect
 	}
 	if err != nil {
 		return "", err
 	}
-	if !validateHash(hashedpwd, pwd) {
+	if !validateHash(u.HashedPwd, pwd) {
 		return "", ErrLoginIncorrect
 	}
 
 	// Return session token, this will be used to authenticate username
-	// on every request by calling validateHash(tok, username)
-	tok := genHash(username)
+	// on every request by calling validateTok()
+	tok := genTok(&u)
 	return tok, nil
 }
 
@@ -937,7 +945,7 @@ func savegridHandler(db *sql.DB) http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("No user '%s'", username), 401)
 			return
 		}
-		if !validateHash(tok, username) {
+		if !validateTok(tok, u) {
 			http.Error(w, fmt.Sprintf("Token not validated for '%s' ", u.Username), 401)
 			return
 		}
@@ -981,7 +989,7 @@ func loadgridHandler(db *sql.DB) http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("No user '%s'", username), 401)
 			return
 		}
-		if !validateHash(tok, username) {
+		if !validateTok(tok, u) {
 			http.Error(w, fmt.Sprintf("Token not validated for '%s' ", u.Username), 401)
 			return
 		}
