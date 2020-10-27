@@ -41,7 +41,7 @@
 {:else if ui.mode == "signup"}
     <div class="flex flex-row w-full">
         <div class="widget">
-            <SignupForm username="" pwd="" on:signup={loginform_login} on:cancel={loginform_cancel} />
+            <SignupForm username="" on:signup={loginform_login} on:cancel={loginform_cancel} />
         </div>
     </div>
 {:else if ui.mode == "edituser"}
