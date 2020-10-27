@@ -1,7 +1,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-let svcurl = "http://localhost:8000/api";
+let svcurl = "/api";
 
 export let username = "";
 export let pwd = "";
