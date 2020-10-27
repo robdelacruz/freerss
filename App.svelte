@@ -31,7 +31,7 @@
     </div>
 
 {#if ui.mode == ""}
-    <Grid bind:this={grid} username={ui.username} tok={ui.tok} />
+    <Grid bind:this={grid} username={ui.username} tok={ui.tok} on:invalidtok={grid_invalidtok} />
 {:else if ui.mode == "login"}
     <div class="flex flex-row w-full">
         <div class="widget">
@@ -152,6 +152,10 @@ function currentSession() {
         return {username: username, tok: tok};
     }
     return {username: "", tok: ""};
+}
+
+function grid_invalidtok(e) {
+    onlogout();
 }
 
 </script>

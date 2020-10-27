@@ -1,6 +1,7 @@
 <script>
-import {onMount} from "svelte";
 import RSSView from "./RSSView.svelte";
+import {onMount, createEventDispatcher} from "svelte";
+let dispatch = createEventDispatcher();
 let svcurl = "/api";
 export let username = "";
 export let tok = "";
@@ -39,6 +40,10 @@ async function loadGrid(username, tok) {
         if (!res.ok) {
             let err = await res.text();
             console.error(err);
+
+            if (res.status >= 400 && res.status < 500) {
+                dispatch("invalidtok");
+            }
             return null;
         }
         let result = await res.json();
@@ -93,6 +98,10 @@ async function saveGrid(username, tok, cols) {
         if (!res.ok) {
             let err = await res.text();
             console.error(err);
+
+            if (res.status >= 400 && res.status < 500) {
+                dispatch("invalidtok");
+            }
             return false;
         }
         return true;
