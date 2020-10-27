@@ -2,10 +2,11 @@
 
 Web-based RSS Viewer and Portal.
 
-Uses the following tools:
+Dependencies and Tools used:
 - [gofeed library](https://github.com/mmcdole/gofeed)
 - [Svelte](https://svelte.dev)
 - [Tailwind CSS](https://tailwindcss.com)
+- [Zondicons](http://www.zondicons.com/)
 
 ## Usage
 
