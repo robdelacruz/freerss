@@ -254,7 +254,7 @@ function onformcancel(e) {
 }
 
 async function discoverfeeds(qurl) {
-    let sreq = `${svcurl}/discoverfeed?url=${encodeURIComponent(qurl)}`
+    let sreq = `${svcurl}/discoverfeed?url=${encodeURIComponent(qurl)}`;
     let res = await fetch(sreq, {method: "GET"});
     if (!res.ok) {
         let err = await res.text();
