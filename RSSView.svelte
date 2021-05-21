@@ -32,7 +32,7 @@
 {:else if ui.mode == "display"}
     {#if ui.err}
         <p>Error ({ui.err})</p>
-    {:else if ui.feed}
+    {:else if ui.feed && ui.feed.entries}
         <ul class="linklist">
         {#each ui.feed.entries as entry}
             <li>
@@ -49,6 +49,8 @@
             </li>
         {/each}
         </ul>
+    {:else}
+        <p>No entries</p>
     {/if}
 {:else if ui.mode == "settings"}
     <form class="">
@@ -224,7 +226,6 @@ async function onformupdate(e) {
             feedurl = feeds[0];
             settingsform.feedurl = feedurl;
         } catch(err) {
-            console.log(err);
             settingsform.mode = "";
             settingsform.status = "server error: try again later";
             return;
