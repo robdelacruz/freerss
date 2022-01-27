@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	xhtml "golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
 	"html"
 	"io"
 	"io/ioutil"
@@ -20,6 +18,10 @@ import (
 	"strings"
 	"time"
 
+	xhtml "golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
+
+	"github.com/gorilla/feeds"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mmcdole/gofeed"
 	"golang.org/x/crypto/bcrypt"
@@ -249,6 +251,7 @@ func run(args []string) error {
 	http.HandleFunc("/api/deluser/", deluserHandler(db))
 	http.HandleFunc("/api/savegrid/", savegridHandler(db))
 	http.HandleFunc("/api/loadgrid/", loadgridHandler(db))
+	http.HandleFunc("/api/testfeed/", testfeedHandler(db))
 
 	port := "8000"
 	if len(parms) > 1 {
@@ -1001,5 +1004,42 @@ func loadgridHandler(db *sql.DB) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		P := makeFprintf(w)
 		P("%s\n", gridjson)
+	}
+}
+
+func testfeedHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Allow requests from all sites.
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "application/rss+xml")
+		P := makeFprintf(w)
+
+		now := time.Now()
+		f := feeds.Feed{
+			Title:       "FreeRSS test rss feed",
+			Link:        &feeds.Link{Href: "http://freerss.robdelacruz.com/api/testfeed"},
+			Description: "Test RSS feed with inline script",
+			Author:      &feeds.Author{},
+			Created:     now,
+		}
+		item := feeds.Item{
+			Title: "test item with inline script",
+			Link:  &feeds.Link{Href: "http://freerss.robdelacruz.com/api/testfeed"},
+			Description: `<p>This is <em>markup</em> containing an inline script. 
+			<a href="#" onclick="alert('click')">click me</a>
+			</p>
+			<script defer type="application/javascript">console.log("inline script"); alert("inline script!");</script>\n`,
+			Author:  &feeds.Author{},
+			Created: now,
+		}
+		f.Items = []*feeds.Item{
+			&item,
+		}
+		rss, err := f.ToRss()
+		if err != nil {
+			handleErr(w, err, "testfeedHandler")
+			return
+		}
+		P("%s\n", rss)
 	}
 }

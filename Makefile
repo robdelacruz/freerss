@@ -4,17 +4,18 @@
 # 'make' to build css and js into static/
 # 'make serve' to start dev webserver
 
+NODE_VER = 14
+
 JSFILES = index.js App.svelte Grid.svelte RSSView.svelte LoginForm.svelte SignupForm.svelte EditUserForm.svelte DelUserForm.svelte
 
 all: freerss static/style.css static/bundle.js
 
 dep:
-	sudo apt update
-	sudo apt install curl software-properties-common
-	curl -sL https://deb.nodesource.com/setup_13.x | sudo bash -
+	curl -fsSL https://deb.nodesource.com/setup_$(NODE_VER).x | sudo bash -
 	sudo apt install nodejs
-	sudo npm --force install -g npx
+	sudo npm install -g npx
 	go get github.com/mmcdole/gofeed
+	go get github.com/gorilla/feeds
 
 webtools:
 	npm install --save-dev tailwindcss
