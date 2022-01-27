@@ -1028,7 +1028,7 @@ func testfeedHandler(db *sql.DB) http.HandlerFunc {
 			Description: `<p>This is <em>markup</em> containing an inline script. 
 			<a href="#" onclick="alert('click')">click me</a>
 			</p>
-			<script defer type="application/javascript">console.log("inline script"); alert("inline script!");</script>\n`,
+			<script defer type="application/javascript">console.log("inline script"); alert("inline script!");</script>`,
 			Author:  &feeds.Author{},
 			Created: now,
 		}
