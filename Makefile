@@ -19,6 +19,7 @@ dep:
 
 webtools:
 	npm install --save-dev tailwindcss
+	npm install --save-dev postcss
 	npm install --save-dev postcss-cli
 	npm install --save-dev cssnano
 	npm install --save-dev svelte
