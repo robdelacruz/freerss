@@ -11,9 +11,9 @@ export default {
     },
     plugins: [
         svelte({
-            dev: true,
-            css: function(css) {
-                css.write("static/bundle.css");
+            compilerOptions: {
+                dev: true,
+                css: false,
             }
         }),
         resolve({
