@@ -16,6 +16,7 @@ nodejs:
 	sudo npm install -g npx
 
 dep:
+	go env -w GO111MODULE=auto
 	go get github.com/mmcdole/gofeed
 	go get github.com/gorilla/feeds
 
