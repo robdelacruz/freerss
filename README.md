@@ -29,6 +29,6 @@ Build and test:
 ![widgets with preview](screenshots/freerss_withpreview.png)
 
 ## Contact
-    Twitter: @robdelacruz
+    Twitter: @robcomputing
     Source: http://github.com/robdelacruz/freerss
 
