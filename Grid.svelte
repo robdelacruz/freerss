@@ -80,7 +80,7 @@ function defaultCols() {
     let w4 = newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", 5, false);
     w4.wid = 4;
 
-    let w5 = newWidget("http://fortune2.robdelacruz.com/fortune/?outputfmt=rss&sw=ec", 5, false);
+    let w5 = newWidget("http://fortune2.robdelacruz.xyz/fortune/?outputfmt=rss&sw=ec", 5, false);
     w5.wid = 5;
 
     let w6 = newWidget("https://www.lewrockwell.com/feed/", 5, false);
