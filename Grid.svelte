@@ -68,25 +68,28 @@ async function loadCols(username, tok) {
     return sessioncols;
 }
 function defaultCols() {
-    let w1 = newWidget("http://www.engadget.com/rss.xml", 5, true);
+    let w1 = newWidget("http://everything2.com/node/ticker/New+Writeups+Atom+Feed", 10, false);
     w1.wid = 1;
 
-    let w2 = newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", 5, false);
+    let w2 = newWidget("https://www.linuxtoday.com/feed/", 10, false);
     w2.wid = 2;
 
-    let w3 = newWidget("https://news.ycombinator.com/rss", 10, false);
+    let w3 = newWidget("https://news.ycombinator.com/rss", 10, true);
     w3.wid = 3;
 
-    let w4 = newWidget("http://fortune2.robdelacruz.com/fortune/?outputfmt=rss&sw=ec", 5, false);
+    let w4 = newWidget("http://rss.slashdot.org/Slashdot/slashdotMain", 5, false);
     w4.wid = 4;
 
-    let w5 = newWidget("https://www.lewrockwell.com/feed/", 5, false);
+    let w5 = newWidget("http://fortune2.robdelacruz.xyz/fortune/?outputfmt=rss&sw=ec", 5, false);
     w5.wid = 5;
 
-    let w6 = newWidget("https://feeds.feedburner.com/zerohedge/feed", 5, false);
+    let w6 = newWidget("https://www.lewrockwell.com/feed/", 5, false);
     w6.wid = 6;
 
-    return [[w1], [w2, w3], [w4, w5, w6]];
+    let w7 = newWidget("https://feeds.feedburner.com/zerohedge/feed", 5, false);
+    w7.wid = 7;
+
+    return [[w1, w2], [w3, w4], [w5, w6, w7]];
 }
 function adddefaultwidgets(e) {
     if (ui.cols.length > 0) {
