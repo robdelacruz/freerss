@@ -3,9 +3,9 @@
         <h1 class="text-sm font-bold">
             {#if ui.feed}
                 {#if ui.feed.url != ""}
-                    <a href="{ui.feed.url}" class="" target="_blank">{ui.feed.title}</a>
+                    <a href="{ui.feed.url}" class="" target="_blank" rel="noreferrer">{ui.feed.title}</a>
                 {:else}
-                    <a href="#a" class="" target="_blank">{ui.feed.title}</a>
+                    <a href="#a" class="" target="_blank" rel="noreferrer">{ui.feed.title}</a>
                 {/if}
             {:else}
                 Select Feed
@@ -38,13 +38,13 @@
             <li>
             {#if preview}
                 <div class="mb-3">
-                    <a class="block text-gray-200 text-xs mb-1" href="{entry.url}" target="_blank">{entry.title}</a>
+                    <a class="block text-gray-200 text-xs mb-1" href="{entry.url}" target="_blank" rel="noreferrer">{entry.title}</a>
                     <div class="content text-gray-500">
                         {@html entry.desc}
                     </div>
                 </div>
             {:else}
-                <a class="block" href="{entry.url}" target="_blank">{entry.title}</a>
+                <a class="block" href="{entry.url}" target="_blank" rel="noreferrer">{entry.title}</a>
             {/if}
             </li>
         {/each}

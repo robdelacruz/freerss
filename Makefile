@@ -4,7 +4,7 @@
 # 'make' to build css and js into static/
 # 'make serve' to start dev webserver
 
-NODE_VER = 14
+NODE_VER = 18.12.1
 
 JSFILES = index.js App.svelte Grid.svelte RSSView.svelte LoginForm.svelte SignupForm.svelte EditUserForm.svelte DelUserForm.svelte
 
